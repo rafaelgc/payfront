@@ -1,0 +1,61 @@
+export default function getDescription(invoice: any) {
+    if (invoice.status === 'draft') {
+      return {
+        message: 'El pago está en estado "Borrador". Tu inquilino la recibirá en un rato.',
+        color: '#A4ABB6',
+        isPending: true,
+      };
+    }
+    else if (invoice.status === 'paid') {
+      if (invoice.payment_intent?.latest_charge?.amount_refunded > 0) {
+        return {
+          message: 'El pago se ha devuelto.',
+          color: '#FF3838',
+          isPending: true,
+        };
+      }
+      return {
+        message: 'El pago se ha realizado correctamente.',
+        color: '#56F000',
+        isPending: false,
+      };
+    }
+    else if (invoice.status === 'open') {
+      if (invoice.attempts === 0) {
+        return {
+          message: 'El pago se está procesando.',
+          color: '#2DCCFF',
+          isPending: true,
+        };
+      }
+      else {
+        if (invoice.payment_intent?.status === 'processing') {
+          return {
+            message: 'Estamos procesando el pago.',
+            color: '#2DCCFF',
+            isPending: true,
+          };
+        }
+        if (invoice.payment_intent?.status === 'requires_payment_method') {
+          return {
+            message: `El inquilino parece no haber aceptado todavía el adeudo SEPA. ${invoice.payment_intent.status}:${invoice.payment_intent.last_payment_error?.message}`,
+            color: '#FF3838',
+            isPending: true,
+          };
+        }
+        return {
+          // ie: payment_intent.status=requires_action 
+          message: `No hemos conseguido cobrar el recibo. ${invoice.payment_intent.status}:${invoice.payment_intent.last_payment_error?.message}`,
+          color: '#FF3838',
+          isPending: true,
+        };
+      }
+    }
+    else {
+      return {
+        message: `Estado desconocido. ${invoice.status}:${invoice.payment_intent?.status}`,
+        color: 'grey',
+        isPending: true,
+      };
+    }
+  }

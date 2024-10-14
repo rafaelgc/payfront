@@ -1,0 +1,60 @@
+import { ACTIONS, StoreContext } from "@/store";
+import { Box, Button, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, TextField } from "@mui/material";
+import { useRouter } from "next/navigation";
+import { useContext, useState } from "react";
+
+export function SignIn() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const router = useRouter();
+  const { state: { token }, dispatch } = useContext(StoreContext);
+
+  return (
+    <form>
+      <TextField
+          label="Correo electrónico"
+          fullWidth
+          margin="normal"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+      ></TextField>
+      <TextField
+          label="Contraseña"
+          fullWidth
+          margin="normal"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+      ></TextField>
+      <Box>
+        <Button
+            variant="contained"
+            color="primary"
+            sx={{ mt: 2 }}
+            onClick={async () => {
+              try {
+                const response = await fetch('/api/auth', {
+                  method: 'POST',
+                  body: JSON.stringify({
+                    email,
+                    password,
+                  })
+                });
+
+                const data = await response.json();
+
+                localStorage.setItem('token', data.token);
+                dispatch({ type: ACTIONS.SET_TOKEN, payload: data.token });
+
+                alert('Sesión iniciada correctamente');
+              }
+              catch (e) {
+                alert('Error al iniciar sesión');
+              }
+
+            }}
+        >Comenzar</Button>
+      </Box>
+    </form>
+  )
+}
