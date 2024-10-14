@@ -2,11 +2,11 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { AppBar, Box, Button, createTheme, Divider, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Paper, ThemeProvider, Toolbar, Typography } from "@mui/material";
-import { AttachMoney, InboxOutlined, Mail, MoveToInbox, People } from "@mui/icons-material";
+import { AppBar, Box, Button, createTheme, CssBaseline, Divider, Drawer, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Paper, ThemeProvider, Toolbar, Typography } from "@mui/material";
+import { AttachMoney, InboxOutlined, Mail, Menu, MoveToInbox, People } from "@mui/icons-material";
 import Link from "next/link";
 import { ACTIONS, StateProvider, StoreContext } from "@/store";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 
 const theme = createTheme({
   components: {
@@ -57,16 +57,52 @@ const Authentication = ({ children }: AuthenticationProps) => {
   return <>{children}</>
 }
 
+function DrawerContent() {
+  return (
+    <>
+      <Toolbar />
+      <Box sx={{ overflow: 'auto' }}>
+        <List>
+          <ListItem disablePadding>
+            <ListItemButton
+              LinkComponent={Link}
+              href="/"
+            >
+              <ListItemIcon>
+                <People />
+              </ListItemIcon>
+              <ListItemText primary={'Inquilinos'} />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton
+              LinkComponent={Link}
+              href="/payments"
+            >
+              <ListItemIcon>
+                <AttachMoney />
+              </ListItemIcon>
+              <ListItemText primary={'Pagos'} />
+            </ListItemButton>
+          </ListItem>
+        </List>
+      </Box>
+    </>
+  );
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [open, setOpen] = useState(true);
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <StateProvider>
           <Authentication></Authentication>
+          <CssBaseline />
           <Box sx={{ display: 'flex' }}>
             <AppBar
               position="fixed"
@@ -78,7 +114,22 @@ export default function RootLayout({
               // bgcolor white:
               color="inherit"
             >
-              <Toolbar>
+              <Toolbar disableGutters>
+                <IconButton
+                  color="inherit"
+                  aria-label="open drawer"
+                  onClick={() => setOpen(!open)}
+                  edge="start"
+                  // Hide in desktop (greater than md)
+                  sx={[
+                    {
+                      mr: 2,
+                    },
+                    { display: { xs: 'block', sm: 'block', md: 'none' } },
+                  ]}
+                >
+                  <Menu />
+                </IconButton>
                 <Typography
                   variant="h3"
                   noWrap
@@ -88,46 +139,36 @@ export default function RootLayout({
                     fontSize: '1.1em'
                   }}
                 >
-                  payments.habitacional.es
+                  payfront.habitacional.es
                 </Typography>
               </Toolbar>
             </AppBar>
+            {/* For mobile */}
+            <Drawer
+              open={open}
+              variant="temporary"
+              onClose={() => setOpen(false)}
+              sx={{
+                width: drawerWidth,
+                flexShrink: 0,
+                display: { xs: 'block', sm: 'block', md: 'none' },
+                '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+              }}
+            >
+              <DrawerContent />
+            </Drawer>
+            {/* For desktop */}
             <Drawer
               open={true}
               variant="permanent"
               sx={{
                 width: drawerWidth,
                 flexShrink: 0,
-                [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' },
+                display: { xs: 'none', sm: 'none', md: 'block' },
+                '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
               }}
             >
-              <Toolbar />
-              <Box sx={{ overflow: 'auto' }}>
-                <List>
-                  <ListItem disablePadding>
-                    <ListItemButton
-                      LinkComponent={Link}
-                      href="/"
-                    >
-                      <ListItemIcon>
-                        <People />
-                      </ListItemIcon>
-                      <ListItemText primary={'Inquilinos'} />
-                    </ListItemButton>
-                  </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemButton
-                      LinkComponent={Link}
-                      href="/payments"
-                    >
-                      <ListItemIcon>
-                        <AttachMoney />
-                      </ListItemIcon>
-                      <ListItemText primary={'Pagos'} />
-                    </ListItemButton>
-                  </ListItem>
-                </List>
-              </Box>
+              <DrawerContent />
             </Drawer>
             <Box component="main" sx={{ flexGrow: 1, p: 3, pt: 6 }}>
               <Toolbar />

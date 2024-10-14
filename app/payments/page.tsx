@@ -71,14 +71,15 @@ const PaymentLinkDialog = ({ open, handleClose, invoice }: PaymentLinkDialogProp
 }
 
 const formatUnix = (unix: number) => {
-  return DateTime.fromSeconds(unix).toFormat('dd/MM/yyyy');
+  return DateTime.fromSeconds(unix).toFormat('dd/MM');
 }
 
 interface InvoiceRowProps {
   invoice: any;
+  dense: boolean;
 }
 
-const InvoiceRow = ({ invoice }: InvoiceRowProps) => {
+const InvoiceRow = ({ invoice, dense = false }: InvoiceRowProps) => {
   const [paymentLinkDialogOpen, setPaymentLinkDialogOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -97,7 +98,6 @@ const InvoiceRow = ({ invoice }: InvoiceRowProps) => {
         handleClose={() => setPaymentLinkDialogOpen(false)}
       />
       <TableRow key={invoice.id}>
-        <TableCell>{invoice.amount_due / 100} €</TableCell>
         <TableCell>
           <Tooltip title={getDescription(invoice).message}>
             <ButtonBase>
@@ -105,11 +105,19 @@ const InvoiceRow = ({ invoice }: InvoiceRowProps) => {
             </ButtonBase>
           </Tooltip>
         </TableCell>
+        <TableCell>{invoice.amount_due / 100} €</TableCell>
         <TableCell>{formatUnix(invoice.created)}</TableCell>
+        {!dense &&
+          <TableCell>
+            <Link href={`/payments?tenantId=${invoice.customer}`}>{invoice.customer_name}</Link>
+          </TableCell>
+        }
         <TableCell>
-          <Link href={`/payments?tenantId=${invoice.customer}`}>{invoice.customer_name}</Link>
+          {dense &&
+              <Link href={`/payments?tenantId=${invoice.customer}`}>{invoice.customer_name}</Link>
+          }
+          {invoice.description}
         </TableCell>
-        <TableCell>{invoice.description}</TableCell>
         <TableCell>
           <IconButton
             onClick={handleClick}
@@ -212,8 +220,8 @@ export default function Payments() {
           <Table>
             <TableHead>
               <TableRow>
+              <TableCell></TableCell>
               <TableCell>Importe</TableCell>
-              <TableCell>Estado</TableCell>
               <TableCell>Fecha</TableCell>
               <TableCell>Inquilino</TableCell>
               <TableCell>Descripción</TableCell>
@@ -222,7 +230,7 @@ export default function Payments() {
             </TableHead>
             <TableBody>
               {invoices?.map((invoice) => (
-                <InvoiceRow key={invoice.id} invoice={invoice} />
+                <InvoiceRow key={invoice.id} invoice={invoice} dense={false} />
               ))}
             </TableBody>
           </Table>
