@@ -2,7 +2,7 @@
 import PageContent from "@/components/page-content";
 import PageHeader from "@/components/page-header";
 import { Alert, Box, Button, ButtonBase, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Skeleton, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography } from "@mui/material";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { DateTime } from "luxon";
 import { useRouter, useSearchParams } from "next/navigation";
 import MenuIcon from '@mui/icons-material/Menu';
@@ -172,7 +172,7 @@ const PaymentStatus = ({ invoice, ...other }: PaymentStatusProps) => {
   );
 }
 
-export default function Payments() {
+function Payments() {
   const [invoices, setInvoices] = useState<any[] | null>(null);
 
   const params = useSearchParams();
@@ -239,5 +239,13 @@ export default function Payments() {
 
       </PageContent>
     </>
+  );
+}
+
+export default function SuspensedPayments() {
+  return (
+    <Suspense>
+      <Payments />
+    </Suspense>
   );
 }

@@ -6,7 +6,7 @@ import PageHeader from "@/components/page-header";
 import PageContent from "@/components/page-content";
 import { Add, Delete, Pause, Person, RequestQuote } from "@mui/icons-material";
 import MenuIcon from '@mui/icons-material/Menu';
-import { useContext, useEffect, useState } from "react";
+import { Suspense, useContext, useEffect, useState } from "react";
 import Link from "next/link";
 import { SignUp } from "@/components/signup";
 import { SignIn } from "@/components/signin";
@@ -253,7 +253,7 @@ export default function Tenants() {
   }
   return (
     <>
-      { token ? <AuthenticatedHome /> : <NotAuthenticatedHome /> }
+      { token ? <Suspense><AuthenticatedHome /></Suspense> : <NotAuthenticatedHome /> }
     </>
   );
 }

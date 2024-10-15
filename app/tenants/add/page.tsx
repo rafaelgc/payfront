@@ -15,7 +15,7 @@ export default function AddTenant() {
     const [tenantEmail, setTenantEmail] = useState("");
     const [rent, setRent] = useState("");
     const [entryDate, setEntryDate] = useState("");
-    const [payDay, setPayDay] = useState(1);
+    const [payDay, setPayDay] = useState<number>(1);
     const [isSaving, setIsSaving] = useState(false);
 
     async function saveTenant() {
@@ -49,12 +49,15 @@ export default function AddTenant() {
         return DateTime.fromISO(entryDate);
     }
 
-    function isFirstPaymentPartial() {
-        return getEntryDateDay() !== payDay;
+    function isFirstPaymentPartial(): boolean {
+        return entryDate.length > 0 && getEntryDateDay() !== payDay;
     }
 
     function getFirstAnchorDateTime(): DateTime {
         let dt = DateTime.fromISO(entryDate);
+        if (!dt.isValid) {
+            return dt; // throw an error instead?
+        }
         if (getEntryDateDay() > payDay) {
             // The pay day corresponds to the next month.
             dt = dt.plus({ months: 1 });
@@ -122,7 +125,7 @@ export default function AddTenant() {
                 <Select
                     label="¿Qué día del mes quieres cobrar la renta?"
                     value={payDay}
-                    onChange={(e) => { setPayDay(e.target.value); }}
+                    onChange={(e) => { setPayDay(parseInt(e.target.value.toString())); }}
                 >
                     {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
                         <MenuItem key={day} value={day}>{day}</MenuItem>

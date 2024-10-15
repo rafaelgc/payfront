@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
   });
 
   // If the entry date is today, there's no trial period.
-  let trialEnd = entry;
+  let trialEnd: DateTime<boolean> | null = entry;
   if (entry.toISODate() === DateTime.now().toISODate()) {
     trialEnd = null;
   }
