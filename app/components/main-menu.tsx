@@ -4,7 +4,7 @@ import Link from "next/link";
 
 const drawerWidth = 240;
 
-function DrawerContent() {
+function DrawerContent({ setOpen }: { setOpen: (open: boolean) => void }) {
   return (
     <>
       <Toolbar />
@@ -14,6 +14,7 @@ function DrawerContent() {
             <ListItemButton
               LinkComponent={Link}
               href="/"
+							onClick={() => setOpen(false)}
             >
               <ListItemIcon>
                 <People />
@@ -25,6 +26,7 @@ function DrawerContent() {
             <ListItemButton
               LinkComponent={Link}
               href="/payments"
+							onClick={() => setOpen(false)}
             >
               <ListItemIcon>
                 <AttachMoney />
@@ -58,7 +60,7 @@ export default function MainMenu({ open, setOpen }: MainMenuProps) {
 					'& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
 				}}
 			>
-				<DrawerContent />
+				<DrawerContent setOpen={setOpen} />
 			</Drawer>
 			{/* For desktop */}
 			<Drawer
@@ -71,7 +73,7 @@ export default function MainMenu({ open, setOpen }: MainMenuProps) {
 					'& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
 				}}
 			>
-				<DrawerContent />
+				<DrawerContent setOpen={setOpen} />
 			</Drawer>
 		</>
 	)
