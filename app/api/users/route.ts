@@ -1,4 +1,5 @@
 import { generateToken } from "@/auth/auth";
+import { getenv } from "@/env";
 import { getClient } from "@/stripe/stripe";
 import { hash } from "crypto";
 import { NextApiRequest } from "next";
@@ -18,7 +19,9 @@ export async function POST(req: NextRequest) {
   // TODO: ensure that the email is unique.
 
   const hashedPassword = hash('sha256', body.password);
-  const stripe = getClient();
+  const stripe = getClient({
+    apiKey: getenv('STRIPE_KEY_FOR_CONNECTED', ''),
+  });
   const account = await stripe.accounts.create({
     type: 'standard',
     country: 'ES',

@@ -11,12 +11,12 @@ interface GetTenantProps {
 }
 
 export async function GET(req: NextRequest, { params }: GetTenantProps) {
-  const { accountId } = validate(req);
+  const { stripeContext } = validate(req);
 
-  const stripe = getClient(accountId);
+  const stripe = getClient(stripeContext);
 
   const response = await stripe.customers.retrieve(params.tenantId, {
-    stripeAccount: accountId,
+    stripeAccount: stripeContext.accountId,
   });
 
   console.log('response', response);

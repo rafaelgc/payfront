@@ -21,19 +21,26 @@ export const validate = (req: NextRequest) => {
         throw new Error('Authorization header should contain two parts');
     }
 
+    let apiKey = '';
+
     if (accountId === 'master') {
         if (token !== getenv('MASTER_TOKEN', '')) {
             throw new Error('Invalid token');
         }
+        apiKey = getenv('STRIPE_KEY_FOR_ME', '');
     }
     else {
         if (!verifyToken(accountId, token)) {
             throw new Error('Invalid token');
         }
+        apiKey = getenv('STRIPE_KEY_FOR_CONNECTED', '');
     }
 
     return {
-        accountId: accountId === 'master' ? undefined : accountId
+        stripeContext: {
+            apiKey,
+            accountId: accountId === 'master' ? undefined : accountId
+        },
     };
 };
 

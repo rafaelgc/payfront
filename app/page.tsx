@@ -15,6 +15,7 @@ import { Welcome } from "@/components/welcome";
 import { useSearchParams } from "next/navigation";
 import { Tristate } from "@/tristate";
 import getDescription from "@/invoice-utils";
+import { NoResults } from "./components/no-results";
 
 const NotAuthenticatedHome = () => {
   return (
@@ -175,11 +176,12 @@ const AuthenticatedHome = () => {
     const responses = await Promise.all(promises);
     const newInvoices: { [key: string]: any[] } = {};
 
-    responses.forEach(async (response) => {
+    for (let i = 0; i < responses.length; i++) {
+      const response = responses[i];
       const json = await response.json();
-      console.log(json.data[0].customer, json.data);
       newInvoices[json.data[0].customer] = json.data;
-    });
+    }
+    
     setInvoices(newInvoices);
   }
 
@@ -222,7 +224,7 @@ const AuthenticatedHome = () => {
 
       <PageContent>
         {params.get('newTenant') && (
-          <Alert severity="success">
+          <Alert severity="success" sx={{ mb: 1 }}>
             El inquilino ha sido añadido correctamente. Puede tardar unos segundos en aparecer en esta lista.
           </Alert>
         )}
@@ -230,7 +232,9 @@ const AuthenticatedHome = () => {
           {/** When loading... */} 
           <Skeleton variant="rectangular" width="100%" height={200} />
           {/** When there are no tenants... */}
-          <Typography variant="h6">No hay ningún inquilino.</Typography>
+          <NoResults>
+            No hay ningún inquilino.
+          </NoResults>
           {/** When there are tenants... */}
           <List dense={false}>
             {tenants?.map((tenant) => (

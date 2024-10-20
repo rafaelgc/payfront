@@ -4,9 +4,10 @@ import { NextRequest } from "next/server";
 import Stripe from "stripe";
 
 export async function GET(req: NextRequest) {
-    const { accountId } = validate(req);
+    const { stripeContext } = validate(req);
+    const accountId = stripeContext.accountId;
 
-    const stripe = getClient();
+    const stripe = getClient(stripeContext);
 
     // TODO?: filter by habitacional metadata. But, to do so,
     // we need to add the metadata to the invoices generated
@@ -25,7 +26,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-    const { accountId } = validate(req);
+    const { stripeContext } = validate(req);
+    const accountId = stripeContext.accountId;
 
     if (!req.body) {
         return Response.json({
@@ -39,7 +41,7 @@ export async function POST(req: NextRequest) {
     
     const { customerId, amount, description } = body;
 
-    const stripe = getClient();
+    const stripe = getClient(stripeContext);
 
     const invoice = await stripe.invoices.create({
         customer: customerId,

@@ -2,6 +2,10 @@ sudo docker build -t payfront -f ./Dockerfile.prod .
 
 sudo docker run -p 3000:3000 --env-file .env  payfront
 
+Configure Stripe Webhooks.
+Currently we need to listen to these events:
+invoice.created
+invoice.payment_succeeded
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 

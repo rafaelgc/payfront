@@ -10,6 +10,7 @@ import LinkIcon from '@mui/icons-material/Link';
 import Link from "next/link";
 import { Tristate } from "@/tristate";
 import getDescription from "@/invoice-utils";
+import { NoResults } from "../components/no-results";
 
 // TODO Offtopic: enviar notificacion cuando recibimos notificacion de refund.
 
@@ -215,7 +216,9 @@ function Payments() {
           {/** When loading... */} 
           <Skeleton variant="rectangular" width="100%" height={200} />
           {/** When there are no invoices... */}
-          <Typography variant="body1">No hay ningún pago registrado.</Typography>
+          <NoResults>
+            No hay ningún pago registrado todavía.
+          </NoResults>
           {/** When there are invoices... */}
           <Table>
             <TableHead>

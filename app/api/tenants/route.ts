@@ -5,9 +5,10 @@ import Stripe from "stripe";
 import { DateTime } from "luxon";
 
 export async function GET(req: NextRequest) {
-  const { accountId } = validate(req);
+  const { stripeContext } = validate(req);
+  const accountId = stripeContext.accountId;
 
-  const stripe = getClient(accountId);
+  const stripe = getClient(stripeContext);
 
   const response = await stripe.customers.search({
     query: 'metadata["habitacional"]: "true"',
@@ -25,11 +26,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   // TODO: validate input
-  const { accountId } = validate(req);
+  const { stripeContext } = validate(req);
+  const accountId = stripeContext.accountId;
 
   const body = await req.json();
 
-  const stripe = getClient(accountId);
+  const stripe = getClient(stripeContext);
 
   if (!req.body) {
     return Response.json({
