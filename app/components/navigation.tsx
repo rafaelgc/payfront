@@ -4,7 +4,7 @@ import CustomAppBar from "./app-bar";
 import MainMenu from "./main-menu";
 
 export default function Navigation() {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
 	return (
 		<>
 			<CustomAppBar open={open} setOpen={setOpen} />

@@ -1,7 +1,16 @@
+import { DateTime } from "luxon";
+
 export default function getDescription(invoice: any) {
     if (invoice.status === 'draft') {
+      const datetime = DateTime.fromSeconds(invoice.automatically_finalizes_at);
+      // If the date is today, we should show just the time.
+      let formatted = `el` + datetime.toFormat('dd/MM/yyyy HH:mm');
+      if (datetime.toFormat('dd/MM/yyyy') === DateTime.now().toFormat('dd/MM/yyyy')) {
+        formatted = `a las ` + datetime.toFormat('HH:mm');
+      }
+
       return {
-        message: 'El pago está en estado "Borrador". Tu inquilino la recibirá en un rato.',
+        message: `El pago está en estado "Borrador". Tu inquilino la recibirá ${formatted}.`,
         color: '#A4ABB6',
         isPending: true,
       };

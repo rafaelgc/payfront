@@ -1,7 +1,7 @@
 "use client";
 import PageContent from "@/components/page-content";
 import PageHeader from "@/components/page-header";
-import { Alert, Box, Button, ButtonBase, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Skeleton, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography } from "@mui/material";
+import { Alert, Box, Button, ButtonBase, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Skeleton, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { Suspense, useEffect, useState } from "react";
 import { DateTime } from "luxon";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -205,6 +205,9 @@ function Payments() {
     return 'Pagos';
   }
 
+  const theme = useTheme();
+  const dense = useMediaQuery(theme.breakpoints.down('md'));
+
   // TODO: implement pagination in invoice list.
 
   return (
@@ -226,20 +229,20 @@ function Payments() {
               <TableCell></TableCell>
               <TableCell>Importe</TableCell>
               <TableCell>Fecha</TableCell>
-              <TableCell>Inquilino</TableCell>
+              {!dense &&
+                <TableCell>Inquilino</TableCell>
+              }
               <TableCell>Descripción</TableCell>
               <TableCell></TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {invoices?.map((invoice) => (
-                <InvoiceRow key={invoice.id} invoice={invoice} dense={false} />
+                <InvoiceRow key={invoice.id} invoice={invoice} dense={dense} />
               ))}
             </TableBody>
           </Table>
         </Tristate>
-        
-
       </PageContent>
     </>
   );

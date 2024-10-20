@@ -44,7 +44,7 @@ export default function CustomAppBar({ open, setOpen }: AppBarProps) {
             fontSize: '1.1em'
           }}
         >
-          payfront.habitacional.es
+          payfront.habitacional.ess
         </Typography>
       </Toolbar>
     </AppBar>
