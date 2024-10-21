@@ -1,7 +1,7 @@
 "use client";
 import PageContent from "@/components/page-content";
 import PageHeader from "@/components/page-header";
-import { Alert, Box, Button, ButtonBase, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, ListItemIcon, ListItemText, Menu, MenuItem, Skeleton, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material";
+import { Alert, Avatar, Box, Button, ButtonBase, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, List, ListItem, ListItemAvatar, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Skeleton, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { Suspense, useEffect, useState } from "react";
 import { DateTime } from "luxon";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -11,8 +11,94 @@ import Link from "next/link";
 import { Tristate } from "@/tristate";
 import getDescription from "@/invoice-utils";
 import { NoResults } from "../components/no-results";
+import { Brightness1, Person, PersonSearch } from "@mui/icons-material";
 
 // TODO Offtopic: enviar notificacion cuando recibimos notificacion de refund.
+
+interface InvoiceMenuProps {
+  invoice: any;
+}
+
+const InvoiceMenu = ({ invoice }: InvoiceMenuProps) => {
+  const [paymentLinkDialogOpen, setPaymentLinkDialogOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+  return <>
+    <PaymentLinkDialog
+      invoice={invoice}
+      open={paymentLinkDialogOpen}
+      handleClose={() => setPaymentLinkDialogOpen(false)}
+    />
+    <IconButton
+      onClick={handleClick}
+    >
+      <MenuIcon />
+    </IconButton>
+    <Menu
+      anchorEl={anchorEl}
+      anchorOrigin={{
+        vertical: 'bottom',
+        horizontal: 'right',
+      }}
+      transformOrigin={{
+        vertical: 'top',
+        horizontal: 'right',
+      }}
+      open={open}
+      onClose={handleClose}
+    >
+      <MenuItem
+        component={Link}
+        href={`/payments?tenantId=${invoice.customer}`}
+        onClick={handleClose}
+      >
+        <ListItemIcon>
+          <PersonSearch fontSize="small" />
+        </ListItemIcon>
+        <ListItemText>Ver pagos de este inquilino</ListItemText>
+      </MenuItem>
+      <MenuItem onClick={() => setPaymentLinkDialogOpen(true)}>
+        <ListItemIcon>
+          <LinkIcon fontSize="small" />
+        </ListItemIcon>
+        <ListItemText>Ver enlace de pago</ListItemText>
+      </MenuItem>
+    </Menu>
+  </>
+}
+
+interface InvoiceItemProps {
+  invoice: any;
+}
+
+const InvoiceItem = ({ invoice }: InvoiceItemProps) => {
+  const { color } = getDescription(invoice);
+  return <ListItem
+    key={invoice.id}
+    secondaryAction={
+      <InvoiceMenu invoice={invoice} />
+    }
+  >
+    <ListItemAvatar>
+      <Tooltip title={getDescription(invoice).message}>
+        <Avatar sx={{ bgcolor: 'transparent', color: color }}>
+          <Brightness1 />
+        </Avatar>
+      </Tooltip>
+    </ListItemAvatar>
+    <ListItemText
+      primary={`${invoice.amount_due / 100} € - ${invoice.customer_name}`}
+      secondary={`${formatUnix(invoice.created)}` + (invoice.description ? ` - ${invoice.description}` : '')}
+    />
+  </ListItem>
+}
 
 interface PaymentLinkDialogProps {
   open: boolean;
@@ -72,7 +158,7 @@ const PaymentLinkDialog = ({ open, handleClose, invoice }: PaymentLinkDialogProp
 }
 
 const formatUnix = (unix: number) => {
-  return DateTime.fromSeconds(unix).toFormat('dd/MM');
+  return DateTime.fromSeconds(unix).toFormat('dd/MM/yy');
 }
 
 interface InvoiceRowProps {
@@ -80,24 +166,9 @@ interface InvoiceRowProps {
   dense: boolean;
 }
 
-const InvoiceRow = ({ invoice, dense = false }: InvoiceRowProps) => {
-  const [paymentLinkDialogOpen, setPaymentLinkDialogOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const open = Boolean(anchorEl);
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-  
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+const InvoiceRow = ({ invoice }: InvoiceRowProps) => {
   return (
     <>
-      <PaymentLinkDialog
-        invoice={invoice}
-        open={paymentLinkDialogOpen}
-        handleClose={() => setPaymentLinkDialogOpen(false)}
-      />
       <TableRow key={invoice.id}>
         <TableCell>
           <Tooltip title={getDescription(invoice).message}>
@@ -108,43 +179,14 @@ const InvoiceRow = ({ invoice, dense = false }: InvoiceRowProps) => {
         </TableCell>
         <TableCell>{invoice.amount_due / 100} €</TableCell>
         <TableCell>{formatUnix(invoice.created)}</TableCell>
-        {!dense &&
-          <TableCell>
-            <Link href={`/payments?tenantId=${invoice.customer}`}>{invoice.customer_name}</Link>
-          </TableCell>
-        }
         <TableCell>
-          {dense &&
-              <Link href={`/payments?tenantId=${invoice.customer}`}>{invoice.customer_name}</Link>
-          }
+          <Link href={`/payments?tenantId=${invoice.customer}`}>{invoice.customer_name}</Link>
+        </TableCell>
+        <TableCell>
           {invoice.description}
         </TableCell>
         <TableCell>
-          <IconButton
-            onClick={handleClick}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Menu
-            anchorEl={anchorEl}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right',
-            }}
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            open={open}
-            onClose={handleClose}
-          >
-            <MenuItem onClick={() => setPaymentLinkDialogOpen(true)}>
-              <ListItemIcon>
-                <LinkIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Ver enlace de pago</ListItemText>
-            </MenuItem>
-          </Menu>
+          <InvoiceMenu invoice={invoice} />
         </TableCell>
       </TableRow>
     </>
@@ -156,12 +198,7 @@ interface PaymentStatusProps {
 }
 
 const PaymentStatus = ({ invoice, ...other }: PaymentStatusProps) => {
-  // TODO: consider draft state and inform the user about what it means.
-  // Color code:
-  // - green: paid
-  // - yellow: invoice open and payment processing
-  // - red: invoice open and payment failed or refunded.
-  const { message, color } = getDescription(invoice);
+  const { color } = getDescription(invoice);
 
   return (
     <Box {...other} sx={{
@@ -223,25 +260,31 @@ function Payments() {
             No hay ningún pago registrado todavía.
           </NoResults>
           {/** When there are invoices... */}
-          <Table>
-            <TableHead>
-              <TableRow>
-              <TableCell></TableCell>
-              <TableCell>Importe</TableCell>
-              <TableCell>Fecha</TableCell>
-              {!dense &&
+          {!dense ? (
+            <Table size={dense ? 'small' : 'medium'}>
+              <TableHead>
+                <TableRow>
+                <TableCell></TableCell>
+                <TableCell>Importe</TableCell>
+                <TableCell>Fecha</TableCell>
                 <TableCell>Inquilino</TableCell>
-              }
-              <TableCell>Descripción</TableCell>
-              <TableCell></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
+                <TableCell>Descripción</TableCell>
+                <TableCell></TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {invoices?.map((invoice) => (
+                  <InvoiceRow key={invoice.id} invoice={invoice} dense={dense} />
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <List>
               {invoices?.map((invoice) => (
-                <InvoiceRow key={invoice.id} invoice={invoice} dense={dense} />
+                <InvoiceItem key={invoice.id} invoice={invoice} />
               ))}
-            </TableBody>
-          </Table>
+            </List>
+          )}
         </Tristate>
       </PageContent>
     </>
