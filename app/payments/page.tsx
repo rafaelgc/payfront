@@ -11,15 +11,16 @@ import Link from "next/link";
 import { Tristate } from "@/tristate";
 import getDescription from "@/invoice-utils";
 import { NoResults } from "../components/no-results";
-import { Brightness1, Person, PersonSearch } from "@mui/icons-material";
+import { Brightness1, Person, PersonSearch, Undo } from "@mui/icons-material";
 
 // TODO Offtopic: enviar notificacion cuando recibimos notificacion de refund.
 
 interface InvoiceMenuProps {
   invoice: any;
+  showTenantPaymentsButton: boolean;
 }
 
-const InvoiceMenu = ({ invoice }: InvoiceMenuProps) => {
+const InvoiceMenu = ({ invoice, showTenantPaymentsButton }: InvoiceMenuProps) => {
   const [paymentLinkDialogOpen, setPaymentLinkDialogOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -54,16 +55,18 @@ const InvoiceMenu = ({ invoice }: InvoiceMenuProps) => {
       open={open}
       onClose={handleClose}
     >
-      <MenuItem
-        component={Link}
-        href={`/payments?tenantId=${invoice.customer}`}
-        onClick={handleClose}
-      >
-        <ListItemIcon>
-          <PersonSearch fontSize="small" />
-        </ListItemIcon>
-        <ListItemText>Ver pagos de este inquilino</ListItemText>
-      </MenuItem>
+      {showTenantPaymentsButton &&
+        <MenuItem
+          component={Link}
+          href={`/payments?tenantId=${invoice.customer}`}
+          onClick={handleClose}
+        >
+          <ListItemIcon>
+            <PersonSearch fontSize="small" />
+          </ListItemIcon>
+          <ListItemText>Ver pagos de este inquilino</ListItemText>
+        </MenuItem>
+      }
       <MenuItem onClick={() => setPaymentLinkDialogOpen(true)}>
         <ListItemIcon>
           <LinkIcon fontSize="small" />
@@ -76,14 +79,15 @@ const InvoiceMenu = ({ invoice }: InvoiceMenuProps) => {
 
 interface InvoiceItemProps {
   invoice: any;
+  showTenantPaymentsButton: boolean;
 }
 
-const InvoiceItem = ({ invoice }: InvoiceItemProps) => {
+const InvoiceItem = ({ invoice, showTenantPaymentsButton }: InvoiceItemProps) => {
   const { color } = getDescription(invoice);
   return <ListItem
     key={invoice.id}
     secondaryAction={
-      <InvoiceMenu invoice={invoice} />
+      <InvoiceMenu invoice={invoice} showTenantPaymentsButton={showTenantPaymentsButton} />
     }
   >
     <ListItemAvatar>
@@ -163,10 +167,10 @@ const formatUnix = (unix: number) => {
 
 interface InvoiceRowProps {
   invoice: any;
-  dense: boolean;
+  showTenantPaymentsButton: boolean;
 }
 
-const InvoiceRow = ({ invoice }: InvoiceRowProps) => {
+const InvoiceRow = ({ invoice, showTenantPaymentsButton }: InvoiceRowProps) => {
   return (
     <>
       <TableRow key={invoice.id}>
@@ -186,7 +190,7 @@ const InvoiceRow = ({ invoice }: InvoiceRowProps) => {
           {invoice.description}
         </TableCell>
         <TableCell>
-          <InvoiceMenu invoice={invoice} />
+          <InvoiceMenu invoice={invoice} showTenantPaymentsButton={showTenantPaymentsButton} />
         </TableCell>
       </TableRow>
     </>
@@ -242,6 +246,8 @@ function Payments() {
     return 'Pagos';
   }
 
+  const isFilteringByTenant = !!params.get('tenantId');
+
   const theme = useTheme();
   const dense = useMediaQuery(theme.breakpoints.down('md'));
 
@@ -249,7 +255,13 @@ function Payments() {
 
   return (
     <>
-      <PageHeader title={getTitle()}></PageHeader>
+      <PageHeader title={getTitle()}>
+        {isFilteringByTenant &&
+          <IconButton LinkComponent={Link} href={'/payments'}>
+            <Undo />
+          </IconButton>
+        }
+      </PageHeader>
 
       <PageContent>
         <Tristate observed={invoices}>
@@ -274,14 +286,14 @@ function Payments() {
               </TableHead>
               <TableBody>
                 {invoices?.map((invoice) => (
-                  <InvoiceRow key={invoice.id} invoice={invoice} dense={dense} />
+                  <InvoiceRow key={invoice.id} invoice={invoice} showTenantPaymentsButton={!isFilteringByTenant} />
                 ))}
               </TableBody>
             </Table>
           ) : (
             <List>
               {invoices?.map((invoice) => (
-                <InvoiceItem key={invoice.id} invoice={invoice} />
+                <InvoiceItem key={invoice.id} invoice={invoice} showTenantPaymentsButton={!isFilteringByTenant} />
               ))}
             </List>
           )}

@@ -9,10 +9,6 @@ export async function GET(req: NextRequest) {
 
     const stripe = getClient(stripeContext);
 
-    // TODO?: filter by habitacional metadata. But, to do so,
-    // we need to add the metadata to the invoices generated
-    // automatically for the subscriptions.
-
     const response = await stripe.invoices.list({
         customer: req.nextUrl.searchParams.get('tenantId') || undefined,
         expand: ['data.payment_intent', 'data.payment_intent.charges', 'data.payment_intent.latest_charge'],
