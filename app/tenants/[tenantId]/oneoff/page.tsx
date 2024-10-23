@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import { useEffect, useState } from "react";
 import { DateTime } from "luxon";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 interface OneOffPaymentProps {
     params: {
@@ -18,10 +19,16 @@ export default function OneOffPayment({ params }: OneOffPaymentProps) {
     const [tenant, setTenant] = useState<any | null>(null);
     const [amount, setAmount] = useState("");
     const [description, setDescription] = useState("");
+    const [errorMessage, setErrorMessage] = useState<string>('');
+    const [processingRequest, setProcessingRequest] = useState<boolean>(false);
 
     useEffect(() => {
         loadTenant();
     }, []);
+
+    const isValid = () => {
+        return amount !== "" && parseFloat(amount) > 0; // TODO: the minimum is not 0.
+    }
 
     async function loadTenant() {
         const response = await fetch(`/api/tenants/${params.tenantId}`, {
@@ -34,65 +41,30 @@ export default function OneOffPayment({ params }: OneOffPaymentProps) {
     }
     
     async function saveOneOff() {
-        // TODO: add warning if the amount is 0.
         // TODO: add warning or confirmation modal if the amount is too high.
-        const response = await fetch('/api/tenants/invoices', {
-            method: 'POST',
-            body: JSON.stringify({
-                customerId: params.tenantId,
-                amount,
-                description: description
-            }),
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        });
-        const data = await response.json();
-        console.log(data);
-        router.push(`/payments?tenantId=${params.tenantId}`);
-    }
-
-    /*
-    function getEntryDateTime() {
-        return DateTime.fromISO(entryDate);
-    }
-
-    function isFirstPaymentPartial() {
-        return getEntryDateDay() !== payDay;
-    }
-
-    function getFirstAnchorDateTime(): DateTime {
-        let dt = DateTime.fromISO(entryDate);
-        if (getEntryDateDay() > payDay) {
-            // The pay day corresponds to the next month.
-            dt = dt.plus({ months: 1 });
-            const effectivePayDay = Math.min(payDay, dt.daysInMonth);
-            dt = dt.set({ day: effectivePayDay });
-            return dt;
+        try {
+            setErrorMessage('');
+            setProcessingRequest(true);
+            const response = await axios.post('/api/tenants/invoices', {
+                    customerId: params.tenantId,
+                    amount,
+                    description: description
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            const data = response.data;
+            console.log(data);
+            router.push(`/payments?tenantId=${params.tenantId}&invoiceCreated=true`);
         }
-        else if (getEntryDateDay() < payDay) {
-            // The pay day corresponds to the current month.
-            dt = dt.set({ day: payDay });
-            return dt;
+        catch (e) {
+            setErrorMessage((e as any).response.data.message);
         }
-        else {
-            // Important: set they anchor day to the next month.
-            // If the entry date is the same as the anchor (eg: 8 oct), we would charge
-            // the tenant 0$ because Stripe would consider that the first cicle is
-            // from oct 8 to oct 8 (0 days).
-            return dt.plus({ months: 1 });
+        finally {
+            setProcessingRequest(false);
         }
     }
-
-    function getFirstCicleDuration() {
-        return getFirstAnchorDateTime().diff(getEntryDateTime(), 'days').days;
-    }
-
-    function getEntryDateDay() {
-        const date = new Date(entryDate);
-        return date.getDate();
-    }
-    */
 
     if (!tenant) {
         return <PageContent>
@@ -103,6 +75,7 @@ export default function OneOffPayment({ params }: OneOffPaymentProps) {
     return <>
         <PageHeader title={`Cobro único a ${tenant.name}`} />
         <PageContent>
+            {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
             <TextField
                 label="Descripción"
                 fullWidth
@@ -135,6 +108,7 @@ export default function OneOffPayment({ params }: OneOffPaymentProps) {
                 variant="contained"
                 color="primary"
                 sx={{ mt: 2, mr: 2 }}
+                disabled={!isValid() || processingRequest}
             >Guardar</Button>
         </PageContent>
     </>

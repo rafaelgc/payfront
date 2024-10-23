@@ -68,3 +68,5 @@ export default function getDescription(invoice: any) {
       };
     }
   }
+
+  export const getMinimumChargeAmount = () => 0.5;

@@ -1,4 +1,5 @@
 import { validate } from "@/auth/auth";
+import { getMinimumChargeAmount } from "@/invoice-utils";
 import { getClient } from "@/stripe/stripe";
 import { NextRequest } from "next/server";
 import Stripe from "stripe";
@@ -41,6 +42,15 @@ export async function POST(req: NextRequest) {
     
     const { customerId, amount, description } = body;
 
+    if (amount <= getMinimumChargeAmount()) {
+        return Response.json({
+            error_code: 'amount_too_small',
+            message: `El importe debe ser al menos de ${getMinimumChargeAmount()}€`,
+        }, {
+            status: 422
+        });
+    }
+
     const stripe = getClient(stripeContext);
 
     const customerResponse = await stripe.customers.retrieve(customerId, {
@@ -48,55 +58,84 @@ export async function POST(req: NextRequest) {
     });
     
     const customer = customerResponse as Stripe.Customer;
-    const canChargeAutomatically = customer.invoice_settings.default_payment_method;
+    const canChargeAutomatically = !!customer.invoice_settings.default_payment_method;
 
-    const invoice = await stripe.invoices.create({
-        customer: customerId,
-        collection_method: canChargeAutomatically ? 'charge_automatically' : 'send_invoice',
-        days_until_due: canChargeAutomatically ? undefined : 3,
-        currency: 'eur',
-        auto_advance: true,
-        description,
-        statement_descriptor: description.substring(0, 22),
-        payment_settings: {
-            payment_method_types: [
-                'sepa_debit'
-            ],
-        },
-        metadata: {
-            habitacional: 'true',
-            habitacional_oneoff: 'true',
+    try {
+        const invoice = await stripe.invoices.create({
+            customer: customerId,
+            collection_method: canChargeAutomatically ? 'charge_automatically' : 'send_invoice',
+            days_until_due: canChargeAutomatically ? undefined : 3,
+            currency: 'eur',
+            auto_advance: true,
+            description,
+            statement_descriptor: description.substring(0, 22),
+            payment_settings: {
+                payment_method_types: [
+                    'sepa_debit'
+                ],
+            },
+            metadata: {
+                habitacional: 'true',
+                habitacional_oneoff: 'true',
+            }
+        }, {
+            stripeAccount: accountId,
+        });
+
+        console.log('A');
+
+        await stripe.invoiceItems.create({
+            invoice: invoice.id,
+            customer: customerId,
+            currency: 'eur',
+            amount: amount * 100,
+            description,
+            metadata: {
+                habitacional: 'true',
+            }
+        }, {
+            stripeAccount: accountId,
+        });
+
+        console.log('B');
+
+        try {
+            await stripe.invoices.finalizeInvoice(invoice.id, {
+                stripeAccount: accountId,
+            });
         }
-    }, {
-        stripeAccount: accountId,
-    });
-
-    await stripe.invoiceItems.create({
-        invoice: invoice.id,
-        customer: customerId,
-        currency: 'eur',
-        amount: amount * 100,
-        description,
-        metadata: {
-            habitacional: 'true',
+        catch (e) {
+            await stripe.invoices.del(invoice.id, {
+                stripeAccount: accountId,
+            });
+            console.error((e as any).raw.code);
+            throw e;
         }
-    }, {
-        stripeAccount: accountId,
-    });
 
-    await stripe.invoices.finalizeInvoice(invoice.id, {
-        stripeAccount: accountId,
-    });
+        console.log('C');
 
-    await stripe.invoices.pay(invoice.id, {
-        stripeAccount: accountId,
-    });
+        if (canChargeAutomatically) {
+            await stripe.invoices.pay(invoice.id, {
+                stripeAccount: accountId,
+            });
+        }
 
-    return Response.json({
-        message: 'Invoice created',
-        data: invoice,
-    }, {
-        status: 201
-    });
+        console.log('D');
+
+        return Response.json({
+            message: 'Invoice created',
+            data: invoice,
+        }, {
+            status: 201
+        });
+    }
+    catch (e) {
+        console.error(e);
+        return Response.json({
+            message: `No se ha podido crear el cobro. Detalles: ${(e as any).raw.message}`,
+        }, {
+            status: 400
+        });
+    }
 }
     
