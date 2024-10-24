@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { DateTime } from "luxon";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { getMinimumChargeAmount } from "@/invoice-utils";
 
 interface OneOffPaymentProps {
     params: {
@@ -27,7 +28,7 @@ export default function OneOffPayment({ params }: OneOffPaymentProps) {
     }, []);
 
     const isValid = () => {
-        return amount !== "" && parseFloat(amount) > 0; // TODO: the minimum is not 0.
+        return amount !== "" && parseFloat(amount) > getMinimumChargeAmount();
     }
 
     async function loadTenant() {
@@ -41,7 +42,12 @@ export default function OneOffPayment({ params }: OneOffPaymentProps) {
     }
     
     async function saveOneOff() {
-        // TODO: add warning or confirmation modal if the amount is too high.
+        if (parseFloat(amount) > 500) {
+            if (!confirm("El importe parece muy alto. ¿Estás seguro de que quieres cobrar esta cantidad?")) {
+                return;
+            }
+        }
+
         try {
             setErrorMessage('');
             setProcessingRequest(true);
@@ -89,6 +95,7 @@ export default function OneOffPayment({ params }: OneOffPaymentProps) {
                 fullWidth
                 margin="normal"
                 type="number"
+                placeholder={`Mínimo ${getMinimumChargeAmount()} €`}
                 onChange={(e) => setAmount(e.target.value)}
                 value={amount}
             ></TextField>
