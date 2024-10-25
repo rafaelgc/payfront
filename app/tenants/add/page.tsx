@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import { useState } from "react";
 import { DateTime } from "luxon";
 import { useRouter } from "next/navigation";
+import { getMinimumChargeAmount } from "@/invoice-utils";
 
 export default function AddTenant() {
     const router = useRouter();
@@ -83,13 +84,42 @@ export default function AddTenant() {
         return getFirstAnchorDateTime().diff(getEntryDateTime(), 'days').days;
     }
 
+    function canCalculateFirstCicleRent() {
+        return getEntryDateTime().isValid && !!rent && !!payDay;
+    }
+
+    function calculateFirstCicleRent() {
+        if (!getEntryDateTime().isValid) {
+            return 0;
+        }
+        const days = getFirstCicleDuration();
+        const parsedRent = parseFloat(rent);
+        const entryDt: DateTime = getEntryDateTime();
+        if (!entryDt.daysInMonth) {
+            return 0;
+        }
+        return parsedRent * days / entryDt.daysInMonth;
+    }
+
+    function firstCircleRentValid() {
+        return calculateFirstCicleRent() > getMinimumChargeAmount()
+    }
+
     function getEntryDateDay() {
         const date = new Date(entryDate);
         return date.getDate();
     }
 
     function validated() {
-        return tenantName && tenantEmail && rent && entryDate && payDay;
+        return tenantName && tenantEmail && rent && entryDate && payDay && firstCircleRentValid();
+    }
+
+    function formatCurrency(amount: number) {
+        const formatter = new Intl.NumberFormat('es-ES', {
+            style: 'currency',
+            currency: 'EUR',
+        });
+        return formatter.format(amount);
     }
 
     return <>
@@ -144,8 +174,14 @@ export default function AddTenant() {
 
             <Collapse in={isFirstPaymentPartial()}>
                 <Alert severity="info" sx={{ my: 1 }}>
-                    La primera renta que recibirás será parcial, desde el día {getEntryDateTime().toFormat('dd/MM/yyyy')}
+                    La primera renta que recibirás será parcial, desde el día {getEntryDateTime().toFormat('dd/MM/yyyy')}&nbsp;
                     hasta el día {getFirstAnchorDateTime().toFormat('dd/MM/yyyy')} ({getFirstCicleDuration()} días).
+                </Alert>
+            </Collapse>
+            <Collapse in={!firstCircleRentValid() && canCalculateFirstCicleRent()}>
+                <Alert severity="error" sx={{ my: 1 }}>
+                    El primer ciclo de facturación es muy corto y la renta es muy baja ({formatCurrency(calculateFirstCicleRent())}).
+                    El mínimo es de {formatCurrency(getMinimumChargeAmount())}.
                 </Alert>
             </Collapse>
 
@@ -187,7 +223,7 @@ export default function AddTenant() {
                 setWhatsNext(!whatsNext);
             }}>¿Qué va a ocurrir ahora?</Link>
             <Collapse in={whatsNext}>
-                <WhatsNext payDay={payDay} entryDate={getEntryDateTime()} />
+                <WhatsNext firstPaymentPartial={isFirstPaymentPartial()} payDay={payDay} entryDate={getEntryDateTime()} />
             </Collapse>
         </PageContent>
     </>
@@ -196,11 +232,13 @@ export default function AddTenant() {
 interface WhatsNextProps {
     payDay: number;
     entryDate: DateTime;
+    firstPaymentPartial: boolean;
 }
 
 function WhatsNext({
     payDay,
     entryDate,
+    firstPaymentPartial,
 }: WhatsNextProps) {
     console
     if (!entryDate || !entryDate.isValid || !payDay) {
@@ -211,18 +249,24 @@ function WhatsNext({
         <Typography sx={{ mb: '16px' }}>
             Vamos a configurar la domiciliación bancaria para que la renta se cobre automáticamente. el día {payDay} de cada mes.
         </Typography>
-        <Typography sx={{ mb: '16px' }}>
-            La primera renta, que será parcial, se cobrará el día {entryDate.toFormat('dd/MM/yyyy')}. A partir de entonces, se cobrará el día {payDay} de cada mes.
-        </Typography>
+        {firstPaymentPartial &&
+            <Typography sx={{ mb: '16px' }}>
+                La primera renta, que será parcial, se cobrará el día {entryDate.toFormat('dd/MM/yyyy')}. A partir de entonces, se cobrará el día {payDay} de cada mes.
+            </Typography>
+        }
+        
         <Typography sx={{ mb: '16px' }}>
             Tu inquilino recibirá un correo electrónico el día {entryDate.toFormat('dd/MM/yyyy')} para autorizar
             la domiciliación bancaria. Es muy importante que la acepte, de lo contrario, no podremos cobrarle la renta.
+            Desde el apartado de Pagos podrás ver si ha autorizado el cobro.
+        </Typography>
+        <Typography sx={{ mb: '16px' }}>
             A partir de esa primera autorización, la renta se cobrará automáticamente sin que el inquilino tenga
-            que intervenir. Además, una vez autorice los cargos también podrás hacerle cobros de importes arbitrarios, por ejemplo,
+            que intervenir. Además, una vez autorice los cargos, también podrás hacerle cobros de importes arbitrarios, por ejemplo,
             para el cobro de suministros.
         </Typography>
-        Ten en cuenta que el email puede tardar unas horas en llegar. En el listado de inquilinos aparecerá en verde el inquilino que haya autorizado el pago.
-
-        Ten en cuenta que las cobros por domiciliación pueden tardar varios días en llegar a tu cuenta bancaria.
+        <Typography sx={{ mb: '16px' }}>
+            Ten en cuenta que las cobros por domiciliación pueden tardar varios días en llegar a tu cuenta bancaria.
+        </Typography>
     </Alert>
 }
