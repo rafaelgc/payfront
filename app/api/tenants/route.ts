@@ -25,7 +25,6 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  // TODO: validate input
   const { stripeContext } = validate(req);
   const accountId = stripeContext.accountId;
 
@@ -41,9 +40,11 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const description = 'Alquiler C/ Mayor 1, 1A';
+  const description = 'Alquiler';
 
-  // TODO: Properly handle errors. If the subscription fails, we should delete the customer and the product.
+  // [TODO][BUG] It 26 oct, 00:20. I've created a subscription: from today 26 with charges on 1 every month.
+  // However, I obserbe that the charge day is 26. I think that we shouldn't cosider this a bug.
+  // Maybe there's issue because the timezone difference.
 
   const customer = await stripe.customers.create({
     name: body.name,
@@ -56,25 +57,53 @@ export async function POST(req: NextRequest) {
     stripeAccount: accountId
   });
 
-  // TODO: Try to create a sigle product for all the tenants.
-  const product = await stripe.products.create({
-    name: description,
-    type: 'service',
-    metadata: {
-      habitacional: 'true'
-    }
+  const product = await getRentProduct(description, stripe, accountId);
+
+  try {
+    const subscription = await createSubscription(
+      customer,
+      product,
+      description,
+      body.rent,
+      body.anchorDate,
+      body.entryDate,
+      stripe,
+      accountId
+    );
+
+    return Response.json({
+      message: 'Subscription created',
+      data: subscription,
+    }, {
+      status: 201
+    });
+  }
+  catch (error) {
+    // Delete the customer.
+    await stripe.customers.del(customer.id, {
+      stripeAccount: accountId
+    });
+  }
+
+  return Response.json({
+    message: 'No se ha podido procesar la solicitud.',
   }, {
-    stripeAccount: accountId
+    status: 500
   });
+}
 
-
-  let anchor = DateTime.fromISO(body.anchorDate);
-  const entry = DateTime.fromISO(body.entryDate);
-
-  // TODO: if the entry is 8 oct and the pay day is 9, the first payment will
-  // be very small. We should try to avoid this situation. Maybe we could
-  // ask the user to charge the first payment manually.
-  
+async function createSubscription(
+  customer: Stripe.Customer,
+  product: Stripe.Product,
+  description: string,
+  rent: number,
+  anchorDate: string,
+  entryDate: string,
+  stripe: Stripe,
+  accountId?: string
+): Promise<Stripe.Subscription> {
+  let anchor = DateTime.fromISO(anchorDate);
+  const entry = DateTime.fromISO(entryDate);
   // IMPORTANT: Set anchor hour to current hour.
   anchor = anchor.set({
     hour: DateTime.now().hour,
@@ -88,7 +117,6 @@ export async function POST(req: NextRequest) {
   if (entry.toISODate() === DateTime.now().toISODate()) {
     trialEnd = null;
   }
-
   const subscription = await stripe.subscriptions.create({
     customer: customer.id,
     billing_cycle_anchor: anchor.toUnixInteger(),
@@ -109,7 +137,7 @@ export async function POST(req: NextRequest) {
           recurring: {
             interval: 'month',
           },
-          unit_amount: body.rent * 100,
+          unit_amount: rent * 100,
         },
       }
     ],
@@ -126,12 +154,36 @@ export async function POST(req: NextRequest) {
     stripeAccount: accountId
   });
 
-  return Response.json({
-    message: 'Subscription created',
-    data: subscription,
+  return subscription;
+}
+
+async function getRentProduct(description: string, stripe: Stripe, accountId?: string): Promise<Stripe.Product> {
+  const products = await stripe.products.search({
+    query: 'metadata["habitacional"]: "true"',
+    limit: 1,
   }, {
-    status: 201
-  });
+    stripeAccount: accountId,
+  })
+
+  let product = null;
+  if (products.data.length === 0) {
+    console.log('Creating product');
+    product = await stripe.products.create({
+      name: description,
+      type: 'service',
+      metadata: {
+        habitacional: 'true'
+      }
+    }, {
+      stripeAccount: accountId
+    });
+  }
+  else {
+    console.log('Reuse product');
+    product = products.data[0];
+  }
+
+  return product;
 }
 
 /*
