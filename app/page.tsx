@@ -6,7 +6,7 @@ import PageHeader from "@/components/page-header";
 import PageContent from "@/components/page-content";
 import { Add, Delete, Pause, Person, RequestQuote } from "@mui/icons-material";
 import MenuIcon from '@mui/icons-material/Menu';
-import { Suspense, useContext, useEffect, useState } from "react";
+import { Fragment, Suspense, useContext, useEffect, useState } from "react";
 import Link from "next/link";
 import { SignUp } from "@/components/signup";
 import { SignIn } from "@/components/signin";
@@ -37,11 +37,12 @@ const getTenantDescription = (tenant: any, invoices?: any[]) => {
     
     if (subscription.status === 'trialing') {
       const date = new Date(subscription.trial_end * 1000);
-      description.push(<>{`Desde ${date.toLocaleDateString()}`}</>);
+      description.push(<Fragment key='status'>{`Desde ${date.toLocaleDateString()}`}</Fragment>);
     }
     else if (subscription.status === 'active') {
-      description.push(<>Contrato activo</>);
+      description.push(<Fragment key='status'>Contrato activo</Fragment>);
     }
+
     if (subscription.billing_cycle_anchor_config || subscription.current_period_end) {
       let day = 0;
       if (subscription.billing_cycle_anchor_config) {
@@ -52,28 +53,28 @@ const getTenantDescription = (tenant: any, invoices?: any[]) => {
         day = date.getDate();
       }
 
-      description.push(<>Cobro el día {day}</>);
+      description.push(<Fragment key='payday'>Cobro el día {day}</Fragment>);
     }
 
     if (invoices === undefined) {
-      description.push(<Skeleton variant="text" width={100} sx={{ display: 'inline-block' }}/>);
+      description.push(<Skeleton key='pending-payments' variant="text" width={100} sx={{ display: 'inline-block' }}/>);
     }
     else {
       const pendingInvoices = countPendingInvoices(invoices);
       if (pendingInvoices > 0) {
-        description.push(<Link href={`/payments?tenantId=${tenant.id}`}>{pendingInvoices} facturas pendientes</Link>);
+        description.push(<Link key='pending-payments' href={`/payments?tenantId=${tenant.id}`}>{pendingInvoices} facturas pendientes</Link>);
       }
       else {
-        description.push(<Link href={`/payments?tenantId=${tenant.id}`}>Sin facturas pendientes</Link>);
+        description.push(<Link key='pending-payments' href={`/payments?tenantId=${tenant.id}`}>Sin facturas pendientes</Link>);
       }
     }
   }
   else {
-    description.push(<>Sin alquiler</>);
+    description.push(<Fragment key='no-rent'>Sin alquiler</Fragment>);
   }
 
   return description.reduce((acc, curr, index) => {
-    if (index > 0) acc.push(<> - </>);
+    if (index > 0) acc.push(<Fragment key={`sep-${index}`}> - </Fragment>);
     acc.push(curr);
     return acc;
   }, [] as JSX.Element[]);
@@ -102,7 +103,6 @@ const TenantInfo = ({ tenant, invoices }: TenantInfoProps) => {
   };
 
   return <ListItem
-    key={tenant.id}
     secondaryAction={
       <>
         <IconButton
