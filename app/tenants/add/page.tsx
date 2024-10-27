@@ -261,7 +261,7 @@ function WhatsNext({
             Desde el apartado de Pagos podrás ver si ha autorizado el cobro.
         </Typography>
         <Typography sx={{ mb: '16px' }}>
-            A partir de esa primera autorización, la renta se cobrará automáticamente sin que el inquilino tenga
+            A partir de esa primera autorización, la renta se cobrará automáticamente sin que el inquilino o tú tengáis
             que intervenir. Además, una vez autorice los cargos, también podrás hacerle cobros de importes arbitrarios, por ejemplo,
             para el cobro de suministros.
         </Typography>
