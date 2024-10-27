@@ -217,8 +217,10 @@ const AuthenticatedHome = () => {
           variant="contained"
           color="primary"
           startIcon={<Add />}
+          LinkComponent={Link}
+          href="/tenants/add"
         >
-          <Link href="/tenants/add">Nuevo inquilino</Link>
+          Nuevo inquilino
         </Button>
       </PageHeader>
 
