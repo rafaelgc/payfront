@@ -53,9 +53,10 @@ export async function POST(req: NextRequest) {
       //'habitacional_token': token,
     },
   });
+  const url = getenv('URL', 'http://localhost:3000');
   const links = await stripe.accountLinks.create({
-    return_url: `http://localhost:3000?stripeStatus=success&stripeAccount=${account.id}`,
-    refresh_url: `http://localhost:3000?stripeStatus=error`,
+    return_url: `${url}?stripeStatus=success&stripeAccount=${account.id}`,
+    refresh_url: `${url}?stripeStatus=error`,
     account: account.id,
     type: 'account_onboarding'
   });

@@ -13,7 +13,7 @@ import getDescription from "@/invoice-utils";
 import { NoResults } from "../components/no-results";
 import { Brightness1, Person, PersonSearch, Undo } from "@mui/icons-material";
 
-// TODO Offtopic: enviar notificacion cuando recibimos notificacion de refund.
+// [IMPROVEMENT]: enviar notificacion cuando recibimos notificacion de refund.
 
 interface InvoiceMenuProps {
   invoice: any;
@@ -216,12 +216,16 @@ const PaymentStatus = ({ invoice, ...other }: PaymentStatusProps) => {
 
 function Payments() {
   const [invoices, setInvoices] = useState<any[] | null>(null);
-
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  
   const params = useSearchParams();
 
-  const loadInvoices = async () => {
+  const loadInvoices = async (startingAfter?: string, endingBefore?: string) => {
+    setLoading(true);
     const query = new URLSearchParams({
       tenantId: params.get('tenantId') ?? '',
+      startingAfter: startingAfter ?? '',
     }).toString();
 
     const response = await fetch(`/api/tenants/invoices?${query}`, {
@@ -232,10 +236,17 @@ function Payments() {
     });
 
     const data = await response.json();
-    setInvoices(data.data);
+    const newInvoices = [
+      ...(invoices ?? []),
+      ...data.data
+    ];
+    setInvoices(newInvoices);
+    setLoading(false);
+    setHasMore(data.has_more);
   };
 
   useEffect(() => {
+    setInvoices(null);
     loadInvoices();
   }, [params]);
 
@@ -251,8 +262,6 @@ function Payments() {
   const theme = useTheme();
   const dense = useMediaQuery(theme.breakpoints.down('md'));
 
-  // TODO: implement pagination in invoice list.
-
   return (
     <>
       <PageHeader title={getTitle()}>
@@ -264,6 +273,12 @@ function Payments() {
       </PageHeader>
 
       <PageContent>
+        {params.get('invoiceCreated') && (
+          <Alert severity="success" sx={{ mt: 2 }}>
+            El cobro se ha iniciado correctamente.
+          </Alert>
+        )
+        }
         <Tristate observed={invoices}>
           {/** When loading... */} 
           <Skeleton variant="rectangular" width="100%" height={200} />
@@ -272,31 +287,44 @@ function Payments() {
             No hay ningún pago registrado todavía.
           </NoResults>
           {/** When there are invoices... */}
-          {!dense ? (
-            <Table size={dense ? 'small' : 'medium'}>
-              <TableHead>
-                <TableRow>
-                <TableCell></TableCell>
-                <TableCell>Importe</TableCell>
-                <TableCell>Fecha</TableCell>
-                <TableCell>Inquilino</TableCell>
-                <TableCell>Descripción</TableCell>
-                <TableCell></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
+          <>
+            {!dense ? (
+              <Table size={dense ? 'small' : 'medium'}>
+                <TableHead>
+                  <TableRow>
+                  <TableCell></TableCell>
+                  <TableCell>Importe</TableCell>
+                  <TableCell>Fecha</TableCell>
+                  <TableCell>Inquilino</TableCell>
+                  <TableCell>Descripción</TableCell>
+                  <TableCell></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {invoices?.map((invoice) => (
+                    <InvoiceRow key={invoice.id} invoice={invoice} showTenantPaymentsButton={!isFilteringByTenant} />
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <List>
                 {invoices?.map((invoice) => (
-                  <InvoiceRow key={invoice.id} invoice={invoice} showTenantPaymentsButton={!isFilteringByTenant} />
+                  <InvoiceItem key={invoice.id} invoice={invoice} showTenantPaymentsButton={!isFilteringByTenant} />
                 ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <List>
-              {invoices?.map((invoice) => (
-                <InvoiceItem key={invoice.id} invoice={invoice} showTenantPaymentsButton={!isFilteringByTenant} />
-              ))}
-            </List>
-          )}
+              </List>
+            )}
+            {invoices && hasMore &&
+              <Box sx={{ textAlign: 'center', mt: 2 }}>
+                <Button
+                  disabled={loading}
+                  variant="text"
+                  onClick={() => {
+                    loadInvoices(invoices[invoices.length - 1].id);
+                  }}
+                >Cargar más</Button>
+              </Box>
+            }
+          </>
         </Tristate>
       </PageContent>
     </>

@@ -42,10 +42,6 @@ export async function POST(req: NextRequest) {
 
   const description = 'Alquiler';
 
-  // [TODO][BUG] It 26 oct, 00:20. I've created a subscription: from today 26 with charges on 1 every month.
-  // However, I obserbe that the charge day is 26. I think that we shouldn't cosider this a bug.
-  // Maybe there's issue because the timezone difference.
-
   const customer = await stripe.customers.create({
     name: body.name,
     email: body.email,

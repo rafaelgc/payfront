@@ -82,8 +82,6 @@ export async function POST(req: NextRequest) {
             stripeAccount: accountId,
         });
 
-        console.log('A');
-
         await stripe.invoiceItems.create({
             invoice: invoice.id,
             customer: customerId,
@@ -96,8 +94,6 @@ export async function POST(req: NextRequest) {
         }, {
             stripeAccount: accountId,
         });
-
-        console.log('B');
 
         try {
             await stripe.invoices.finalizeInvoice(invoice.id, {
@@ -112,15 +108,11 @@ export async function POST(req: NextRequest) {
             throw e;
         }
 
-        console.log('C');
-
         if (canChargeAutomatically) {
             await stripe.invoices.pay(invoice.id, {
                 stripeAccount: accountId,
             });
         }
-
-        console.log('D');
 
         return Response.json({
             message: 'Invoice created',
