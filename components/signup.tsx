@@ -1,3 +1,4 @@
+import axios from "@/node_modules/axios/index";
 import { Box, Button, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, TextField } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -7,12 +8,14 @@ export function SignUp() {
   const [password, setPassword] = useState("");
   const [companyType, setCompanyType] = useState("individual");
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [processingRequest, setProcessingRequest] = useState<boolean>(false);
   const router = useRouter();
 
   return (
     <form>
       <TextField
           label="Correo electrónico"
+          type="email"
           fullWidth
           margin="normal"
           value={email}
@@ -49,21 +52,29 @@ export function SignUp() {
             variant="contained"
             color="primary"
             sx={{ mt: 2 }}
+            disabled={processingRequest || !termsAccepted}
             onClick={async () => {
-              const response = await fetch('/api/users', {
-                method: 'POST',
-                body: JSON.stringify({
-                  email,
-                  password,
-                  companyType,
-                })
-              });
+              try {
+                setProcessingRequest(true);
+                const response = await axios.post('/api/users', {
+                    email,
+                    password,
+                    companyType,
+                });
+  
+                const redirectInfo = response.data;
+  
+                localStorage.setItem('token', redirectInfo.token);
+  
+                router.push(redirectInfo.url);
 
-              const redirectInfo = await response.json();
-
-              localStorage.setItem('token', redirectInfo.token);
-
-              router.push(redirectInfo.url);
+                // Do not setProcessingRequest(false) here, as the page will be redirected
+                // and we don't want the user to be able to click the button again.
+              }
+              catch (e) {
+                alert('Error al crear la cuenta.');
+                setProcessingRequest(false);
+              }
             }}
         >Comenzar</Button>
       </Box>

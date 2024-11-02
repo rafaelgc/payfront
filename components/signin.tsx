@@ -1,3 +1,4 @@
+import axios from "@/node_modules/axios/index";
 import { ACTIONS, StoreContext } from "@/store";
 import { Box, Button, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, TextField } from "@mui/material";
 import { useRouter } from "next/navigation";
@@ -6,6 +7,7 @@ import { useContext, useState } from "react";
 export function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [processingRequest, setProcessingRequest] = useState<boolean>(false);
   const router = useRouter();
   const { state: { token }, dispatch } = useContext(StoreContext);
 
@@ -14,6 +16,7 @@ export function SignIn() {
       <TextField
           label="Correo electrónico"
           fullWidth
+          type="email"
           margin="normal"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -31,17 +34,16 @@ export function SignIn() {
             variant="contained"
             color="primary"
             sx={{ mt: 2 }}
+            disabled={processingRequest}
             onClick={async () => {
               try {
-                const response = await fetch('/api/auth', {
-                  method: 'POST',
-                  body: JSON.stringify({
-                    email,
-                    password,
-                  })
+                setProcessingRequest(true);
+                const response = await axios.post('/api/auth', {
+                  email,
+                  password,
                 });
 
-                const data = await response.json();
+                const data = response.data;
 
                 localStorage.setItem('token', data.token);
                 dispatch({ type: ACTIONS.SET_TOKEN, payload: data.token });
@@ -51,7 +53,9 @@ export function SignIn() {
               catch (e) {
                 alert('Error al iniciar sesión');
               }
-
+              finally {
+                setProcessingRequest(false);
+              }
             }}
         >Comenzar</Button>
       </Box>
