@@ -16,6 +16,7 @@ import { useSearchParams } from "next/navigation";
 import { Tristate } from "@/tristate";
 import getDescription from "@/invoice-utils";
 import { NoResults } from "./components/no-results";
+import { CircularProgress } from "@/node_modules/@mui/material/index";
 
 const NotAuthenticatedHome = () => {
   return (
@@ -228,6 +229,9 @@ const AuthenticatedHome = () => {
         {params.get('newTenant') && (
           <Alert severity="success" sx={{ mb: 1 }}>
             El inquilino ha sido añadido correctamente. Puede tardar unos segundos en aparecer en esta lista.
+            <Box sx={{ width: '20px', display: 'inline-block', verticalAlign: 'center' }}>
+              <CircularProgress sx={{ verticalAlign: 'center' }} size={16} />
+            </Box>
           </Alert>
         )}
         <Tristate observed={tenants}>
