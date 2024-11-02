@@ -2,6 +2,14 @@ import { DateTime } from "luxon";
 
 export default function getDescription(invoice: any) {
     if (invoice.status === 'draft') {
+      if (invoice.amount_due === 0) {
+        // I think that invoices with amount_due=0 don't have automatically_finalizes_at.
+        return {
+          message: 'El pago está en estado "Borrador". No hay nada que cobrar.',
+          color: '#56F000',
+          isPending: false,
+        }
+      }
       const datetime = DateTime.fromSeconds(invoice.automatically_finalizes_at);
       // If the date is today, we should show just the time.
       let formatted = `el ` + datetime.toFormat('dd/MM/yyyy HH:mm');
