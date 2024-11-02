@@ -1,11 +1,31 @@
+# Deploy to production
+
 sudo docker build -t payfront -f ./Dockerfile.prod .
 
-sudo docker run -p 3000:3000 --env-file .env  payfront
+## Stripe Webhooks
 
 Configure Stripe Webhooks.
 Currently we need to listen to these events:
-invoice.created
-invoice.payment_succeeded
+- invoice.created
+- invoice.payment_succeeded
+
+These events should be sent to: `domain.tld/api/whook`
+
+# Setup the development environment
+
+Use the docker-compose.example.yaml as a reference to run the two services required:
+- The payfront service itself.
+- Ngrok to make it possible to Stripe to communicate with your local service.
+
+## Stripe Webhooks
+
+- Go to Ngrok to get your public URL.
+- Go to the Stripe Webhooks section in Deploy to production to know what events should be sent to Ngrok.
+
+
+
+
+
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 

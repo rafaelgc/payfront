@@ -15,6 +15,9 @@ export const Authentication = ({ children }: AuthenticationProps) => {
 			console.log('dispatching...');
 			dispatch({ type: ACTIONS.SET_TOKEN, payload: token });
 		}
+		else {
+			dispatch({ type: ACTIONS.SET_NOT_LOADING_TOKEN });
+		}
 	}, [dispatch]);
 
 	return <>{children}</>

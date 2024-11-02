@@ -20,6 +20,7 @@ export const StoreContext = createContext({
 
 export enum ACTIONS {
     SET_TOKEN,
+    SET_NOT_LOADING_TOKEN,
 }
 
 export type Action = { type: ACTIONS; payload: any };
@@ -35,6 +36,11 @@ export const StateProvider = ({ children }: StateProviderProps) => {
                 return {
                     ...state,
                     token: action.payload,
+                    loadingToken: false,
+                };
+            case ACTIONS.SET_NOT_LOADING_TOKEN:
+                return {
+                    ...state,
                     loadingToken: false,
                 };
             default:

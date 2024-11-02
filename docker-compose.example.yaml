@@ -1,0 +1,19 @@
+services:
+  pay-front:
+    image: "node:20.17-alpine"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./payfront/:/home/node
+    env_file: "./payfront/.env"
+    working_dir: "/home/node"
+    user: "node"
+    command: sh -c "npm install && npm run dev"
+    environment:
+      - NODE_ENV=development
+  ngrok-proxy:
+    image: "ngrok/ngrok:3.3.1-alpine"
+    environment:
+      NGROK_AUTHTOKEN: <<YOUR TOKEN>>
+      network_mode: "host"
+    command: http 3000
