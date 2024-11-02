@@ -21,6 +21,7 @@ export default function AddTenant() {
 
     async function saveTenant() {
         setIsSaving(true);
+        // [TODO]: catch 4XX error. Use axios instead.
         try {
             await fetch('/api/tenants', {
                 method: 'POST',
@@ -247,7 +248,7 @@ function WhatsNext({
     return <Alert severity="info" sx={{ mt: 2 }}>
         <AlertTitle>¿Qué va a ocurrir ahora?</AlertTitle>
         <Typography sx={{ mb: '16px' }}>
-            Vamos a configurar la domiciliación bancaria para que la renta se cobre automáticamente. el día {payDay} de cada mes.
+            Vamos a configurar la domiciliación bancaria para que la renta se cobre automáticamente el día {payDay} de cada mes.
         </Typography>
         {firstPaymentPartial &&
             <Typography sx={{ mb: '16px' }}>
