@@ -1,10 +1,10 @@
 "use client";
 import Image from "next/image";
 import styles from "./page.module.css";
-import { Alert, Avatar, Box, Button, Checkbox, FormControlLabel, IconButton, List, ListItem, ListItemAvatar, ListItemIcon, ListItemText, Menu, MenuItem, Paper, Skeleton, TextField, Typography } from "@mui/material";
+import { Alert, Avatar, Box, Button, Checkbox, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, FormControlLabel, IconButton, List, ListItem, ListItemAvatar, ListItemIcon, ListItemText, Menu, MenuItem, Paper, Skeleton, TextField, Typography } from "@mui/material";
 import PageHeader from "@/components/page-header";
 import PageContent from "@/components/page-content";
-import { Add, Delete, Pause, Person, RequestQuote } from "@mui/icons-material";
+import { Add, Delete, Euro, Pause, Person, RequestQuote } from "@mui/icons-material";
 import MenuIcon from '@mui/icons-material/Menu';
 import { Fragment, Suspense, useContext, useEffect, useState } from "react";
 import Link from "next/link";
@@ -18,6 +18,7 @@ import getDescription from "@/invoice-utils";
 import { NoResults } from "./components/no-results";
 import { CircularProgress } from "@/node_modules/@mui/material/index";
 import axios from "axios";
+import { formatCurrency } from "@/i18n";
 
 const NotAuthenticatedHome = () => {
   return (
@@ -33,12 +34,79 @@ const NotAuthenticatedHome = () => {
   )
 }
 
+interface EditRentAmountDialogProps {
+  tenantId: string;
+  open: boolean;
+  onClose: () => void;
+}
+
+function EditRentAmountDialog({ tenantId, open, onClose }: EditRentAmountDialogProps) {
+  const [rent, setRent] = useState(0);
+  const [processingSaveRequest, setProcessingSaveRequest] = useState(false);
+  
+  const handleSave = async () => {
+    try {
+      setProcessingSaveRequest(true);
+      await axios.post(`/api/tenants/${tenantId}`, {
+        rent: rent
+      }, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      onClose();
+    }
+    catch (e) {
+      alert('Error al guardar los cambios.');
+    }
+    finally {
+      setProcessingSaveRequest(false);
+    }
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      PaperProps={{
+        component: 'form',
+        onSubmit: (event: Event) => {
+          event.preventDefault();
+          handleSave();
+        },
+      }}
+    >
+      <DialogTitle>Modificar importe de la renta</DialogTitle>
+      <DialogContent>
+        <DialogContentText>
+          Introduce el nuevo importe de la renta. Este cambio se hará efectivo en el próximo cobro.
+        </DialogContentText>
+        <TextField
+          autoFocus
+          required
+          name="amount"
+          label="Importe mensual"
+          type="number"
+          fullWidth
+          variant="standard"
+          onChange={(event) => setRent(parseFloat(event.target.value))}
+          value={rent}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button type="submit">Actualizar</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 const getTenantDescription = (tenant: any, invoices?: any[]) => {
   let description: JSX.Element[] = [];
   if (tenant.subscriptions?.data?.length > 0) {
-    // description should not be a string but a DOM element.
     const subscription = tenant.subscriptions.data[0];
     
+    // STATUS INFO
     if (subscription.pause_collection) {
       description.push(<Fragment key='status'>Cobro pausado</Fragment>);
     }
@@ -53,6 +121,10 @@ const getTenantDescription = (tenant: any, invoices?: any[]) => {
       description.push(<Fragment key='status'>Cobro {subscription.status}</Fragment>);
     }
 
+    // PRICE INFO
+    description.push(<Fragment key='status'>{formatCurrency(subscription.plan.amount_decimal / 100)}/mes</Fragment>);
+    
+    // PAY DAY INFO
     if (subscription.billing_cycle_anchor_config || subscription.current_period_end) {
       let day = 0;
       if (subscription.billing_cycle_anchor_config) {
@@ -109,6 +181,7 @@ const TenantInfo = ({ tenant, invoices, onPauseCollection }: TenantInfoProps) =>
     setAnchorEl(event.currentTarget);
   };
   const [processingPauseRequest, setProcessingPauseRequest] = useState(false);
+  const [openEditRentAmountDialog, setOpenEditRentAmountDialog] = useState(false);
   
   const handleClose = () => {
     setAnchorEl(null);
@@ -135,59 +208,72 @@ const TenantInfo = ({ tenant, invoices, onPauseCollection }: TenantInfoProps) =>
     setProcessingPauseRequest(false);
   }
 
-  return <ListItem
-    disableGutters={true}
-    secondaryAction={
-      <>
-        <IconButton
-          onClick={handleClick}
-        >
-          <MenuIcon />
-        </IconButton>
-        <Menu
-          anchorEl={anchorEl}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right',
-          }}
-          transformOrigin={{
-            vertical: 'top',
-            horizontal: 'right',
-          }}
-          open={open}
-          onClose={handleClose}
-        >
-          <MenuItem
-            component={Link}
-            href={`/tenants/${tenant.id}/oneoff`}
-          >
-            <ListItemIcon>
-              <RequestQuote fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Hacer cobro único</ListItemText>
-          </MenuItem>
-          <MenuItem disabled={processingPauseRequest} onClick={onPauseHandler}>
-            <ListItemIcon>
-              <Pause fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>
-              { tenant.subscriptions?.data[0].pause_collection ? 'Reanudar alquiler' : 'Pausar alquiler'}
-            </ListItemText>
-          </MenuItem>
-        </Menu>
-      </>
-    }
-  >
-    <ListItemAvatar>
-      <Avatar>
-        <Person />
-      </Avatar>
-    </ListItemAvatar>
-    <ListItemText
-      primary={tenant.name}
-      secondary={getTenantDescription(tenant, invoices)}
+  return <>
+    <EditRentAmountDialog
+      tenantId={tenant.id}
+      open={openEditRentAmountDialog}
+      onClose={() => { setOpenEditRentAmountDialog(false) }}
     />
-  </ListItem>
+    <ListItem
+      disableGutters={true}
+      secondaryAction={
+        <>
+          <IconButton
+            onClick={handleClick}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Menu
+            anchorEl={anchorEl}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+            open={open}
+            onClose={handleClose}
+          >
+            <MenuItem
+              component={Link}
+              href={`/tenants/${tenant.id}/oneoff`}
+            >
+              <ListItemIcon>
+                <RequestQuote fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Hacer cobro único</ListItemText>
+            </MenuItem>
+            <MenuItem disabled={processingPauseRequest} onClick={onPauseHandler}>
+              <ListItemIcon>
+                <Pause fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>
+                { tenant.subscriptions?.data[0].pause_collection ? 'Reanudar alquiler' : 'Pausar alquiler'}
+              </ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => { handleClose(); setOpenEditRentAmountDialog(true) }}>
+              <ListItemIcon>
+                <Euro fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Cambiar importe</ListItemText>
+            </MenuItem>
+          </Menu>
+        </>
+      }
+    >
+      <ListItemAvatar>
+        <Avatar>
+          <Person />
+        </Avatar>
+      </ListItemAvatar>
+      <ListItemText
+        primary={tenant.name}
+        secondary={getTenantDescription(tenant, invoices)}
+      />
+    </ListItem>
+  </>
 }
 
 const AuthenticatedHome = () => {
