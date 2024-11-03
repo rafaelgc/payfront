@@ -17,6 +17,7 @@ import { Tristate } from "@/tristate";
 import getDescription from "@/invoice-utils";
 import { NoResults } from "./components/no-results";
 import { CircularProgress } from "@/node_modules/@mui/material/index";
+import axios from "axios";
 
 const NotAuthenticatedHome = () => {
   return (
@@ -38,12 +39,18 @@ const getTenantDescription = (tenant: any, invoices?: any[]) => {
     // description should not be a string but a DOM element.
     const subscription = tenant.subscriptions.data[0];
     
-    if (subscription.status === 'trialing') {
+    if (subscription.pause_collection) {
+      description.push(<Fragment key='status'>Cobro pausado</Fragment>);
+    }
+    else if (subscription.status === 'trialing') {
       const date = new Date(subscription.trial_end * 1000);
       description.push(<Fragment key='status'>{`Desde ${date.toLocaleDateString()}`}</Fragment>);
     }
-    else if (subscription.status === 'active') {
-      description.push(<Fragment key='status'>Contrato activo</Fragment>);
+    else if (subscription.status === 'active' || subscription.status === 'past_due') {
+      description.push(<Fragment key='status'>Cobro activo</Fragment>);
+    }
+    else {
+      description.push(<Fragment key='status'>Cobro {subscription.status}</Fragment>);
     }
 
     if (subscription.billing_cycle_anchor_config || subscription.current_period_end) {
@@ -92,18 +99,41 @@ const countPendingInvoices = (invoices: any[]) => {
 interface TenantInfoProps {
   tenant: any;
   invoices?: any[];
+  onPauseCollection?: () => {};
 }
 
-const TenantInfo = ({ tenant, invoices }: TenantInfoProps) => {
+const TenantInfo = ({ tenant, invoices, onPauseCollection }: TenantInfoProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
+  const [processingPauseRequest, setProcessingPauseRequest] = useState(false);
   
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  const onPauseHandler = async () => {
+    setProcessingPauseRequest(true);
+    try {
+      await axios.post(`/api/tenants/${tenant.id}/pause`, {}, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (onPauseCollection) {
+        onPauseCollection();
+      }
+      alert('¡Hecho!')
+      handleClose();
+    }
+    catch (e) {
+      alert('Error al pausar el alquiler.');
+    }
+    setProcessingPauseRequest(false);
+  }
 
   return <ListItem
     disableGutters={true}
@@ -136,11 +166,13 @@ const TenantInfo = ({ tenant, invoices }: TenantInfoProps) => {
             </ListItemIcon>
             <ListItemText>Hacer cobro único</ListItemText>
           </MenuItem>
-          <MenuItem>
+          <MenuItem disabled={processingPauseRequest} onClick={onPauseHandler}>
             <ListItemIcon>
               <Pause fontSize="small" />
             </ListItemIcon>
-            <ListItemText>Pausar alquiler</ListItemText>
+            <ListItemText>
+              { tenant.subscriptions?.data[0].pause_collection ? 'Reanudar alquiler' : 'Pausar alquiler'}
+            </ListItemText>
           </MenuItem>
         </Menu>
       </>
@@ -214,6 +246,10 @@ const AuthenticatedHome = () => {
     }
   }, [params]);
 
+  const onPauseCollection = () => {
+    loadTenants();
+  }
+
   return (
     <>
       <PageHeader title="Inquilinos">
@@ -247,7 +283,7 @@ const AuthenticatedHome = () => {
           {/** When there are tenants... */}
           <List dense={false}>
             {tenants?.map((tenant) => (
-              <TenantInfo key={tenant.id} tenant={tenant} invoices={invoices[tenant.id]} />
+              <TenantInfo key={tenant.id} tenant={tenant} invoices={invoices[tenant.id]} onPauseCollection={onPauseCollection} />
             ))}
           </List>
         </Tristate>

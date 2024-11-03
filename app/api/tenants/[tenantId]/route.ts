@@ -1,8 +1,6 @@
 import { validate } from "@/auth/auth";
 import { getClient } from "@/stripe/stripe";
 import { NextRequest } from "next/server";
-import Stripe from "stripe";
-import { DateTime } from "luxon";
 
 interface GetTenantProps {
   params: {
