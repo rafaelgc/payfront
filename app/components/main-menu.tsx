@@ -1,40 +1,81 @@
+import { HelpOutline, HomeOutlined } from "@/node_modules/@mui/icons-material/index";
+import { StoreContext } from "@/store";
 import { AttachMoney, People } from "@mui/icons-material";
 import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar } from "@mui/material";
 import Link from "next/link";
+import { useContext } from "react";
+
+function HelpMenuItem({ setOpen }: { setOpen: (open: boolean) => void}) {
+	return (
+		<ListItem disablePadding>
+			<ListItemButton
+				LinkComponent={Link}
+				href="/help"
+				onClick={() => setOpen(false)}
+			>
+				<ListItemIcon>
+					<HelpOutline />
+				</ListItemIcon>
+				<ListItemText primary={'Ayuda'} />
+			</ListItemButton>
+		</ListItem>
+	)
+}
 
 const drawerWidth = 240;
 
 function DrawerContent({ setOpen }: { setOpen: (open: boolean) => void }) {
+	const { state: { token } } = useContext(StoreContext);
   return (
     <>
       <Toolbar />
       <Box sx={{ overflow: 'auto' }}>
-        <List>
-          <ListItem disablePadding>
-            <ListItemButton
-              LinkComponent={Link}
-              href="/"
-							onClick={() => setOpen(false)}
-            >
-              <ListItemIcon>
-                <People />
-              </ListItemIcon>
-              <ListItemText primary={'Inquilinos'} />
-            </ListItemButton>
-          </ListItem>
-          <ListItem disablePadding>
-            <ListItemButton
-              LinkComponent={Link}
-              href="/payments"
-							onClick={() => setOpen(false)}
-            >
-              <ListItemIcon>
-                <AttachMoney />
-              </ListItemIcon>
-              <ListItemText primary={'Pagos'} />
-            </ListItemButton>
-          </ListItem>
-        </List>
+				{token && (
+					<List>
+						<ListItem disablePadding>
+							<ListItemButton
+								LinkComponent={Link}
+								href="/"
+								onClick={() => setOpen(false)}
+							>
+								<ListItemIcon>
+									<People />
+								</ListItemIcon>
+								<ListItemText primary={'Inquilinos'} />
+							</ListItemButton>
+						</ListItem>
+						<ListItem disablePadding>
+							<ListItemButton
+								LinkComponent={Link}
+								href="/payments"
+								onClick={() => setOpen(false)}
+							>
+								<ListItemIcon>
+									<AttachMoney />
+								</ListItemIcon>
+								<ListItemText primary={'Pagos'} />
+							</ListItemButton>
+						</ListItem>
+						<HelpMenuItem setOpen={setOpen} />
+					</List>
+				)}
+				{!token && (
+					<List>
+						<ListItem disablePadding>
+							<ListItemButton
+								LinkComponent={Link}
+								href="/"
+								onClick={() => setOpen(false)}
+							>
+								<ListItemIcon>
+									<HomeOutlined />
+								</ListItemIcon>
+								<ListItemText primary={'Inicio'} />
+							</ListItemButton>
+						</ListItem>
+						<HelpMenuItem setOpen={setOpen} />
+					</List>
+				)}
       </Box>
     </>
   );
