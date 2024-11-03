@@ -285,6 +285,7 @@ const TenantInfo = ({ tenant, invoices, onPauseCollection, onRentUpdated }: Tena
 }
 
 const AuthenticatedHome = () => {
+  // [TODO] Implement pagination.
   const [tenants, setTenants] = useState<any[] | null>(null);
   const [invoices, setInvoices] = useState<{ [key: string]: any[] }>({});
   const params = useSearchParams();

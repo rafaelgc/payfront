@@ -10,7 +10,6 @@ export default function getDescription(invoice: any) {
           isPending: false,
         }
       }
-      console.log(invoice)
       const datetime = DateTime.fromSeconds(invoice.automatically_finalizes_at);
       // If the date is today, we should show just the time.
       let formatted = `el ` + datetime.toFormat('dd/MM/yyyy HH:mm');

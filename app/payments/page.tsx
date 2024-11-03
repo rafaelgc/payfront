@@ -257,7 +257,7 @@ function Payments() {
   
   const params = useSearchParams();
 
-  const loadInvoices = async (startingAfter?: string, endingBefore?: string) => {
+  const loadInvoices = async (startingAfter?: string, withReset?: boolean) => {
     setLoading(true);
     const query = new URLSearchParams({
       tenantId: params.get('tenantId') ?? '',
@@ -272,18 +272,26 @@ function Payments() {
     });
 
     const data = await response.json();
-    const newInvoices = [
-      ...(invoices ?? []),
-      ...data.data
-    ];
-    setInvoices(newInvoices);
+    if (withReset) {
+      setInvoices(data.data);
+    }
+    else {
+      const newInvoices = [
+        ...(invoices ?? []),
+        ...data.data
+      ];
+      setInvoices(newInvoices);
+    }
     setLoading(false);
     setHasMore(data.has_more);
   };
 
   useEffect(() => {
-    setInvoices(null);
-    loadInvoices();
+    setInvoices(null); // Loading.
+    // It is necessary to reset the invoices. Otherwise, even if we
+    // setInvoices(null), the loadInvoices will see the previous invoices (I think
+    // the invoices present when the function was called).
+    loadInvoices(undefined, true);
   }, [params]);
 
   const getTitle = () => {
