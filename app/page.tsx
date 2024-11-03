@@ -22,9 +22,11 @@ const NotAuthenticatedHome = () => {
   return (
     <>
       <Welcome />
-      <PageContent>
+      <PageContent sx={{ mt: '2em' }}>
+        <Typography variant="h4" sx={{ textAlign: 'center', fontSize: '1.5em', fontWeight: 'bold' }}>
+          Crea una cuenta
+        </Typography>
         <SignUp />
-        <SignIn />
       </PageContent>
     </>
   )
