@@ -106,6 +106,7 @@ const TenantInfo = ({ tenant, invoices }: TenantInfoProps) => {
   };
 
   return <ListItem
+    disableGutters={true}
     secondaryAction={
       <>
         <IconButton
@@ -215,7 +216,7 @@ const AuthenticatedHome = () => {
 
   return (
     <>
-      <PageHeader title="Inquilino">
+      <PageHeader title="Inquilinos">
         <Button
           variant="contained"
           color="primary"
