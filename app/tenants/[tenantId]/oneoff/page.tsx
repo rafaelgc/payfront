@@ -66,8 +66,6 @@ export default function OneOffPayment({ params }: OneOffPaymentProps) {
         }
         catch (e) {
             setErrorMessage((e as any).response.data.message);
-        }
-        finally {
             setProcessingRequest(false);
         }
     }
@@ -116,7 +114,7 @@ export default function OneOffPayment({ params }: OneOffPaymentProps) {
                 color="primary"
                 sx={{ mt: 2, mr: 2 }}
                 disabled={!isValid() || processingRequest}
-            >Guardar</Button>
+            >Cobrar</Button>
         </PageContent>
     </>
 }
