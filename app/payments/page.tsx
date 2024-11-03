@@ -15,6 +15,33 @@ import { Brightness1, Person, PersonSearch, Undo } from "@mui/icons-material";
 
 // [IMPROVEMENT]: enviar notificacion cuando recibimos notificacion de refund.
 
+interface InvoiceStatusDialogProps {
+  open: boolean;
+  handleClose: () => void;
+  text: string;
+}
+
+const InvoiceStatusDialog = ({ open, handleClose, text }: InvoiceStatusDialogProps) => {
+  return (
+    <Dialog
+      fullScreen={false}
+      open={open}
+      onClose={handleClose}
+      aria-labelledby="responsive-dialog-title"
+    >
+      <DialogContent>
+        {text}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} autoFocus>
+          Cerrar
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+
 interface InvoiceMenuProps {
   invoice: any;
   showTenantPaymentsButton: boolean;
@@ -83,25 +110,34 @@ interface InvoiceItemProps {
 }
 
 const InvoiceItem = ({ invoice, showTenantPaymentsButton }: InvoiceItemProps) => {
-  const { color } = getDescription(invoice);
-  return <ListItem
-    key={invoice.id}
-    secondaryAction={
-      <InvoiceMenu invoice={invoice} showTenantPaymentsButton={showTenantPaymentsButton} />
-    }
-  >
-    <ListItemAvatar>
-      <Tooltip title={getDescription(invoice).message}>
-        <Avatar sx={{ bgcolor: 'transparent', color: color }}>
-          <Brightness1 />
-        </Avatar>
-      </Tooltip>
-    </ListItemAvatar>
-    <ListItemText
-      primary={`${invoice.amount_due / 100} € - ${invoice.customer_name}`}
-      secondary={`${formatUnix(invoice.created)}` + (invoice.description ? ` - ${invoice.description}` : '')}
-    />
-  </ListItem>
+  const { color, message } = getDescription(invoice);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  return <>
+    <InvoiceStatusDialog
+      open={dialogOpen}
+      handleClose={() => setDialogOpen(false)}
+      text={message}
+    ></InvoiceStatusDialog>
+    <ListItem
+      disableGutters={true}
+      key={invoice.id}
+      secondaryAction={
+        <InvoiceMenu invoice={invoice} showTenantPaymentsButton={showTenantPaymentsButton} />
+      }
+    >
+      <ListItemAvatar onClick={() => setDialogOpen(true)}>
+        <Tooltip title={getDescription(invoice).message}>
+          <Avatar sx={{ bgcolor: 'transparent', color: color }}>
+            <Brightness1 />
+          </Avatar>
+        </Tooltip>
+      </ListItemAvatar>
+      <ListItemText
+        primary={`${invoice.amount_due / 100} € - ${invoice.customer_name}`}
+        secondary={`${formatUnix(invoice.created)}` + (invoice.description ? ` - ${invoice.description}` : '')}
+      />
+    </ListItem>
+  </>
 }
 
 interface PaymentLinkDialogProps {
