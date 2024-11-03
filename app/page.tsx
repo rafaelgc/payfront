@@ -35,26 +35,28 @@ const NotAuthenticatedHome = () => {
 }
 
 interface EditRentAmountDialogProps {
-  tenantId: string;
+  tenant: any;
   open: boolean;
-  onClose: () => void;
+  onClose: (saved?: Boolean) => void;
 }
 
-function EditRentAmountDialog({ tenantId, open, onClose }: EditRentAmountDialogProps) {
-  const [rent, setRent] = useState(0);
+function EditRentAmountDialog({ tenant, open, onClose }: EditRentAmountDialogProps) {
+  const defaultPrice = tenant.subscriptions?.data[0].plan.amount_decimal / 100;
+  const [rent, setRent] = useState(defaultPrice);
   const [processingSaveRequest, setProcessingSaveRequest] = useState(false);
   
   const handleSave = async () => {
     try {
       setProcessingSaveRequest(true);
-      await axios.post(`/api/tenants/${tenantId}`, {
+      await axios.post(`/api/tenants/${tenant.id}`, {
         rent: rent
       }, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      onClose();
+      onClose(true);
+      alert('¡Actualizado!')
     }
     catch (e) {
       alert('Error al guardar los cambios.');
@@ -67,7 +69,7 @@ function EditRentAmountDialog({ tenantId, open, onClose }: EditRentAmountDialogP
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={() => { onClose(false) }}
       PaperProps={{
         component: 'form',
         onSubmit: (event: Event) => {
@@ -94,8 +96,8 @@ function EditRentAmountDialog({ tenantId, open, onClose }: EditRentAmountDialogP
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button type="submit">Actualizar</Button>
+        <Button disabled={processingSaveRequest} onClick={() => onClose(false)}>Cancel</Button>
+        <Button disabled={processingSaveRequest} type="submit">Actualizar</Button>
       </DialogActions>
     </Dialog>
   );
@@ -171,10 +173,11 @@ const countPendingInvoices = (invoices: any[]) => {
 interface TenantInfoProps {
   tenant: any;
   invoices?: any[];
-  onPauseCollection?: () => {};
+  onPauseCollection?: () => void;
+  onRentUpdated: () => void;
 }
 
-const TenantInfo = ({ tenant, invoices, onPauseCollection }: TenantInfoProps) => {
+const TenantInfo = ({ tenant, invoices, onPauseCollection, onRentUpdated }: TenantInfoProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -210,9 +213,14 @@ const TenantInfo = ({ tenant, invoices, onPauseCollection }: TenantInfoProps) =>
 
   return <>
     <EditRentAmountDialog
-      tenantId={tenant.id}
+      tenant={tenant}
       open={openEditRentAmountDialog}
-      onClose={() => { setOpenEditRentAmountDialog(false) }}
+      onClose={(saved) => {
+        setOpenEditRentAmountDialog(false);
+        if (saved) {
+          onRentUpdated();
+        }
+      }}
     />
     <ListItem
       disableGutters={true}
@@ -369,7 +377,13 @@ const AuthenticatedHome = () => {
           {/** When there are tenants... */}
           <List dense={false}>
             {tenants?.map((tenant) => (
-              <TenantInfo key={tenant.id} tenant={tenant} invoices={invoices[tenant.id]} onPauseCollection={onPauseCollection} />
+              <TenantInfo
+                key={tenant.id}
+                tenant={tenant}
+                invoices={invoices[tenant.id]}
+                onPauseCollection={onPauseCollection}
+                onRentUpdated={loadTenants}
+              />
             ))}
           </List>
         </Tristate>

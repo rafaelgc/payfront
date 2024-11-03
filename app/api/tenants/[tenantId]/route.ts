@@ -66,6 +66,11 @@ export async function POST(req: NextRequest, { params }: GetTenantProps) {
 
   const subscription = filteredSubscriptions[0];
 
+  // About proration_behavior set to None.
+  // In general, we want the new price to be applied in the next billing cycle.
+  // If we're in the middle of a billing cycle and we increase the price, Stripe will prorate the difference, meaning
+  // that the customer will have to pay the difference. I think that difference will be charged in the next billing
+  // cycle. Anyways, I don't think this proratio is in general a good idea, so I'm setting it to None.
   await stripe.subscriptions.update(filteredSubscriptions[0].id, {
     items: [{
       id: subscription.items.data[0].id,
@@ -78,6 +83,7 @@ export async function POST(req: NextRequest, { params }: GetTenantProps) {
         unit_amount: body.rent * 100,
       },
     }],
+    proration_behavior: 'none', // See notes above
   }, {
     stripeAccount: stripeContext.accountId,
   });
