@@ -47,8 +47,7 @@ export function SignIn() {
 
                 localStorage.setItem('token', data.token);
                 dispatch({ type: ACTIONS.SET_TOKEN, payload: data.token });
-
-                alert('Sesión iniciada correctamente');
+                router.push('/');
               }
               catch (e) {
                 alert('Error al iniciar sesión');
@@ -57,7 +56,7 @@ export function SignIn() {
                 setProcessingRequest(false);
               }
             }}
-        >Comenzar</Button>
+        >Iniciar sesión</Button>
       </Box>
     </form>
   )

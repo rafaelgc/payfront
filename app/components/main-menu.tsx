@@ -1,4 +1,4 @@
-import { HelpOutline, HomeOutlined } from "@/node_modules/@mui/icons-material/index";
+import { Face, HelpOutline, HomeOutlined } from "@/node_modules/@mui/icons-material/index";
 import { StoreContext } from "@/store";
 import { AttachMoney, People } from "@mui/icons-material";
 import { Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar } from "@mui/material";
@@ -71,6 +71,18 @@ function DrawerContent({ setOpen }: { setOpen: (open: boolean) => void }) {
 									<HomeOutlined />
 								</ListItemIcon>
 								<ListItemText primary={'Inicio'} />
+							</ListItemButton>
+						</ListItem>
+						<ListItem disablePadding>
+							<ListItemButton
+								LinkComponent={Link}
+								href="/signin"
+								onClick={() => setOpen(false)}
+							>
+								<ListItemIcon>
+									<Face />
+								</ListItemIcon>
+								<ListItemText primary={'Iniciar sesión'} />
 							</ListItemButton>
 						</ListItem>
 						<HelpMenuItem setOpen={setOpen} />
