@@ -7,6 +7,7 @@ import { useState } from "react";
 import { DateTime } from "luxon";
 import { useRouter } from "next/navigation";
 import { getMinimumChargeAmount } from "@/invoice-utils";
+import axios from "axios";
 
 export default function AddTenant() {
     const router = useRouter();
@@ -21,17 +22,14 @@ export default function AddTenant() {
 
     async function saveTenant() {
         setIsSaving(true);
-        // [TODO]: catch 4XX error. Use axios instead.
         try {
-            await fetch('/api/tenants', {
-                method: 'POST',
-                body: JSON.stringify({
-                    email: tenantEmail,
-                    name: tenantName,
-                    rent: rent,
-                    anchorDate: getFirstAnchorDateTime().toISODate(),
-                    entryDate: entryDate,
-                }),
+            await axios.post('/api/tenants', {
+                email: tenantEmail,
+                name: tenantName,
+                rent: rent,
+                anchorDate: payDay,
+                entryDate: entryDate,
+            }, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -41,8 +39,6 @@ export default function AddTenant() {
         catch (e) {
             console.error(e);
             alert('Ha ocurrido un error al guardar el inquilino. Escríbenos a contact@habitacional.es para que podamos ayudarte.');
-        }
-        finally {
             setIsSaving(false);
         }
     }
@@ -55,7 +51,7 @@ export default function AddTenant() {
         return entryDate.length > 0 && getEntryDateDay() !== payDay;
     }
 
-    function getFirstAnchorDateTime(): DateTime {
+    function getFirstCycleEndDate(): DateTime {
         let dt = DateTime.fromISO(entryDate);
         if (!dt.isValid) {
             return dt; // throw an error instead?
@@ -73,16 +69,12 @@ export default function AddTenant() {
             return dt;
         }
         else {
-            // Important: set they anchor day to the next month.
-            // If the entry date is the same as the anchor (eg: 8 oct), we would charge
-            // the tenant 0$ because Stripe would consider that the first cicle is
-            // from oct 8 to oct 8 (0 days).
             return dt.plus({ months: 1 });
         }
     }
 
     function getFirstCicleDuration() {
-        return getFirstAnchorDateTime().diff(getEntryDateTime(), 'days').days;
+        return getFirstCycleEndDate().diff(getEntryDateTime(), 'days').days;
     }
 
     function canCalculateFirstCicleRent() {
@@ -176,7 +168,7 @@ export default function AddTenant() {
             <Collapse in={isFirstPaymentPartial()}>
                 <Alert severity="info" sx={{ my: 1 }}>
                     La primera renta que recibirás será parcial, desde el día {getEntryDateTime().toFormat('dd/MM/yyyy')}&nbsp;
-                    hasta el día {getFirstAnchorDateTime().toFormat('dd/MM/yyyy')} ({getFirstCicleDuration()} días).
+                    hasta el día {getFirstCycleEndDate().toFormat('dd/MM/yyyy')} ({getFirstCicleDuration()} días).
                 </Alert>
             </Collapse>
             <Collapse in={!firstCircleRentValid() && canCalculateFirstCicleRent()}>
@@ -185,31 +177,6 @@ export default function AddTenant() {
                     El mínimo es de {formatCurrency(getMinimumChargeAmount())}.
                 </Alert>
             </Collapse>
-
-            {/*}
-            <Collapse in={!isEntryDateFirstOfMonth() && entryDate}>
-                <FormControl variant="standard">
-                    <FormLabel id="demo-error-radios">
-                        ¿Siempre quieres cobrar la renta el día {getEntryDateDay()} de cada mes?
-                    </FormLabel>
-                    <RadioGroup
-                        value={firstMonthRentPaid}
-                        onChange={(e) => { setFirstMonthRentPaid('true' === e.target.value); }}
-                    >
-                        <FormControlLabel value={false} control={<Radio />} label="Sí, siempre." />
-                        <FormControlLabel value={true} control={<Radio />} label="No, a partir del próximo mes, la cobraré el día 1." />
-                    </RadioGroup>
-                </FormControl>
-                <Collapse in={firstMonthRentPaid}>
-                    <Alert severity="info" sx={{ my: 1 }}>
-                        Como el primer mes es parcial y el día de cobro será distinto al del resto de meses, necesitamos
-                        que este primer mes lo cobres tú mismo. A partir del próximo mes, la renta se cobrará automáticamente
-                        a través de la domiciliación bancaria que vamos a configurar.
-                    </Alert>
-                    <FormControlLabel control={<Checkbox />} label="Estoy de acuerdo, este primer mes lo cobraré por mis propios medios." />
-                </Collapse>
-            </Collapse>
-            */}
             <Box></Box>
             <Button
                 onClick={() => {
