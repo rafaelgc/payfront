@@ -7,14 +7,13 @@ export const Welcome = () => {
       variant="h1"
       sx={{ fontSize: '2.5rem', fontWeight: 'bold', mb: '1rem' }}
     >
-      Simplifica la gestión de tus alquileres
+      Automatiza el cobro de tus alquileres
     </Typography>
     <Typography
       variant="body1"
       sx={sx}
     >
-      ¡Bienvenido! Hemos diseñado esta herramienta para que los propietarios puedan cobrar sus alquileres de forma automática
-      a través de domiciliación bancaria.
+      A través de Payfront podrás configurar fácilmente la domiciliación bancaria para que puedas cobrar tus alquileres de forma automática y 100% online.
     </Typography>
     <Typography
       variant="h2"
@@ -26,14 +25,14 @@ export const Welcome = () => {
       variant="body1"
       sx={sx}
     >
-      Para procesar los pagos utilizamos Stripe, una plataforma de pagos segura. Stripe se encargará de recopilar la autorización
-      de tus inquilinos a través del correo electrónico y cobrará periódicamente los alquileres.
+      Para procesar los pagos utilizamos <a href="https://stripe.com/es" target="_blank">Stripe</a>, una plataforma de pagos segura. Stripe se encargará de recopilar la autorización de domiciliación
+      de tus inquilinos por correo electrónico y cobrará periódicamente los alquileres a través de adeudos directos SEPA.
     </Typography>
     <Typography
       variant="body1"
       sx={sx}
     >
-      El dinero llegará a tu cuenta de Stripe y desde allí llegará a la cuenta bancaria que indiques a Stripe.
+      El dinero llegará a tu cuenta de Stripe y desde allí se transferirá a tu cuenta bancaria.
     </Typography>
     <Typography
       variant="body1"
