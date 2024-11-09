@@ -7,7 +7,8 @@ interface PageContentProps {
 
 export default function PageContent({
   sx,
-  children
+  children,
+  ...other
 }: PageContentProps): JSX.Element {
   return <>
     <Paper
@@ -15,6 +16,7 @@ export default function PageContent({
         p: 2,
         ...sx
       }}
+      {...other}
     >{children}</Paper>
   </>
 }

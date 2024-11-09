@@ -30,6 +30,7 @@ const NotAuthenticatedHome = () => {
         </Typography>
         <SignUp />
       </PageContent>
+      <Box sx={{ mb: 25 }}></Box>
     </>
   )
 }
