@@ -4,7 +4,7 @@ import "./globals.css";
 import { Box, createTheme, CssBaseline, Toolbar } from "@mui/material";
 import { StateProvider } from "@/store";
 import Navigation from "./components/navigation";
-import { Authentication } from "./components/authentication";
+import { Authentication } from "./components/authentication/authentication";
 
 const theme = createTheme({
   components: {
