@@ -13,7 +13,7 @@ import { SignIn } from "@/components/signin";
 import { StoreContext } from "@/store";
 import { Welcome } from "@/components/welcome";
 import { useSearchParams } from "next/navigation";
-import { Tristate } from "@/tristate";
+import { Tristate } from "@/app/components/tristate/tristate";
 import getDescription from "@/invoice-utils";
 import { NoResults } from "./components/no-results";
 import { CircularProgress } from "@/node_modules/@mui/material/index";

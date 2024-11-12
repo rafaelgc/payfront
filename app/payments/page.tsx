@@ -8,7 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import MenuIcon from '@mui/icons-material/Menu';
 import LinkIcon from '@mui/icons-material/Link';
 import Link from "next/link";
-import { Tristate } from "@/tristate";
+import { Tristate } from "@/app/components/tristate/tristate";
 import getDescription from "@/invoice-utils";
 import { NoResults } from "../components/no-results";
 import { Brightness1, Person, PersonSearch, Undo } from "@mui/icons-material";
