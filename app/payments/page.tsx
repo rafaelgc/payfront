@@ -10,10 +10,11 @@ import { NoResults } from "../components/no-results";
 import { Undo } from "@mui/icons-material";
 import { InvoiceItem } from "@/app/payments/invoice-item/invoice-item";
 import { InvoiceRow } from "@/app/payments/invoice-row/invoice-row";
+import axios from "axios";
 
 // [IMPROVEMENT]: enviar notificacion cuando recibimos notificacion de refund.
 
-function Payments() {
+export function Payments() {
   const [invoices, setInvoices] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -27,14 +28,13 @@ function Payments() {
       startingAfter: startingAfter ?? '',
     }).toString();
 
-    const response = await fetch(`/api/tenants/invoices?${query}`, {
-      method: 'GET',
+    const response = await axios.get(`/api/tenants/invoices?${query}`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`
       },
     });
 
-    const data = await response.json();
+    const data = response.data;
     if (withReset) {
       setInvoices(data.data);
     }

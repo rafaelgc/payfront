@@ -18,6 +18,7 @@ export default function PageHeader({
       }}
     >
       <Typography
+        data-testid="page-title"
         sx={{
           fontWeight: 'bold',
           fontSize: '1.2em',
