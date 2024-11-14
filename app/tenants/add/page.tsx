@@ -120,6 +120,7 @@ export default function AddTenant() {
         <PageContent>
             <TextField
                 label="Nombre completo de tu inquilino"
+                data-testid="tenant-name"
                 fullWidth
                 margin="normal"
                 onChange={(e) => setTenantName(e.target.value)}
@@ -127,6 +128,7 @@ export default function AddTenant() {
             ></TextField>
             <TextField
                 label="Correo electrónico de tu inquilino"
+                data-testid="tenant-email"
                 fullWidth
                 margin="normal"
                 onChange={(e) => setTenantEmail(e.target.value)}
@@ -134,6 +136,7 @@ export default function AddTenant() {
             ></TextField>
             <TextField
                 label="Renta mensual"
+                data-testid="rent"
                 fullWidth
                 margin="normal"
                 type="number"
@@ -148,6 +151,7 @@ export default function AddTenant() {
                 <Select
                     label="¿Qué día del mes quieres cobrar la renta?"
                     value={payDay}
+                    data-testid="pay-day"
                     onChange={(e) => { setPayDay(parseInt(e.target.value.toString())); }}
                 >
                     {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
@@ -157,6 +161,7 @@ export default function AddTenant() {
             </FormControl>
             <TextField
                 label="Fecha de entrada del inquilino"
+                data-testid="entry-date"
                 fullWidth
                 margin="normal"
                 type="date"
@@ -182,6 +187,7 @@ export default function AddTenant() {
                 onClick={() => {
                     saveTenant();
                 }}
+                data-testid="save-button"
                 variant="contained"
                 color="primary"
                 sx={{ mt: 2, mr: 2 }}
