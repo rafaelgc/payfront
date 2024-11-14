@@ -35,7 +35,7 @@ interface InvoiceRowProps {
 export const InvoiceRow = ({ invoice, showTenantPaymentsButton }: InvoiceRowProps) => {
   return (
     <>
-      <TableRow key={invoice.id}>
+      <TableRow key={invoice.id} data-testid="invoice-row">
         <TableCell>
           <Tooltip title={getDescription(invoice).message}>
             <ButtonBase>

@@ -123,6 +123,7 @@ export function Payments() {
             {invoices && hasMore &&
               <Box sx={{ textAlign: 'center', mt: 2 }}>
                 <Button
+                  data-testid="load-more-button"
                   disabled={loading}
                   variant="text"
                   onClick={() => {
