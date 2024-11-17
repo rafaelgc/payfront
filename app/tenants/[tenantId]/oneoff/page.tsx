@@ -32,12 +32,12 @@ export default function OneOffPayment({ params }: OneOffPaymentProps) {
     }
 
     async function loadTenant() {
-        const response = await fetch(`/api/tenants/${params.tenantId}`, {
+        const response = await axios.get(`/api/tenants/${params.tenantId}`, {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
         });
-        const data = await response.json();
+        const data = response.data;
         setTenant(data);
     }
     
@@ -85,6 +85,7 @@ export default function OneOffPayment({ params }: OneOffPaymentProps) {
                 fullWidth
                 margin="normal"
                 placeholder="Cobro de suministros"
+                data-testid="description"
                 onChange={(e) => setDescription(e.target.value)}
                 value={description}
             ></TextField>
@@ -93,13 +94,14 @@ export default function OneOffPayment({ params }: OneOffPaymentProps) {
                 fullWidth
                 margin="normal"
                 type="number"
+                data-testid="amount"
                 placeholder={`Mínimo ${getMinimumChargeAmount()} €`}
                 onChange={(e) => setAmount(e.target.value)}
                 value={amount}
             ></TextField>
             <Box></Box>
             {!tenant.invoice_settings?.default_payment_method &&
-                <Alert severity="info">
+                <Alert severity="info" data-testid="no-default-payment-method-alert">
                     Todavía no tenemos una autorización de pago para este inquilino. Eso quiere decir
                     que este cobro no se podrá realizar automáticamente. El inquilino recibirá un
                     correo electrónico para autorizar el pago y, a partir de esa autorización, los
@@ -113,6 +115,7 @@ export default function OneOffPayment({ params }: OneOffPaymentProps) {
                 variant="contained"
                 color="primary"
                 sx={{ mt: 2, mr: 2 }}
+                data-testid="save-button"
                 disabled={!isValid() || processingRequest}
             >Cobrar</Button>
         </PageContent>

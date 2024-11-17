@@ -1,12 +1,8 @@
 import '@testing-library/jest-dom'
-import { act, render, screen, waitFor, fireEvent, within, findByTestId } from '@testing-library/react'
-import { Payments } from '@/app/payments/page'
+import { act, render, screen, waitFor, fireEvent} from '@testing-library/react'
 import axios from 'axios';
-import { Invoice, InvoicePaymentIntentStatus, InvoiceStatus } from '@/app/types/invoice';
-import { DateTime } from 'luxon';
 import { useRouter } from "next/navigation";
 import AddTenant from './page';
-import userEvent from '@testing-library/user-event';
 
 const routerPush = jest.fn();
 
@@ -75,7 +71,6 @@ describe('Add Tenant Page', () => {
     render(<AddTenant defaultPayDay={15} />);
 
     act(() => {
-      console.log(screen.getByTestId('pay-day').querySelector('input') as Element);
       fireEvent.change(screen.getByTestId('tenant-name').querySelector('input') as Element, {target: {value: 'John Doe'}});
       fireEvent.change(screen.getByTestId('tenant-email').querySelector('input') as Element, {target: {value: 'johndoe@habitacional.es'}});
       fireEvent.change(screen.getByTestId('rent').querySelector('input') as Element, {target: {value: '500'}});
