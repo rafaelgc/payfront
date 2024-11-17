@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { getMinimumChargeAmount } from "@/invoice-utils";
 import axios from "axios";
 
-export default function AddTenant() {
+export default function AddTenant({ defaultPayDay = 1 }) {
     const router = useRouter();
     const [whatsNext, setWhatsNext] = useState(false);
     // State for the form:
@@ -17,7 +17,7 @@ export default function AddTenant() {
     const [tenantEmail, setTenantEmail] = useState("");
     const [rent, setRent] = useState("");
     const [entryDate, setEntryDate] = useState("");
-    const [payDay, setPayDay] = useState<number>(1);
+    const [payDay, setPayDay] = useState<number>(defaultPayDay);
     const [isSaving, setIsSaving] = useState(false);
 
     async function saveTenant() {
@@ -151,8 +151,8 @@ export default function AddTenant() {
                 <Select
                     label="¿Qué día del mes quieres cobrar la renta?"
                     value={payDay}
-                    data-testid="pay-day"
                     onChange={(e) => { setPayDay(parseInt(e.target.value.toString())); }}
+                    SelectDisplayProps={{ 'data-testid': 'pay-day' }}
                 >
                     {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
                         <MenuItem key={day} value={day}>{day}</MenuItem>
@@ -170,8 +170,8 @@ export default function AddTenant() {
                 InputLabelProps={{ shrink: true }}
             ></TextField>
 
-            <Collapse in={isFirstPaymentPartial()}>
-                <Alert severity="info" sx={{ my: 1 }}>
+            <Collapse in={isFirstPaymentPartial()} mountOnEnter={true} unmountOnExit={true}>
+                <Alert data-testid="partial-rent-alert" severity="info" sx={{ my: 1 }}>
                     La primera renta que recibirás será parcial, desde el día {getEntryDateTime().toFormat('dd/MM/yyyy')}&nbsp;
                     hasta el día {getFirstCycleEndDate().toFormat('dd/MM/yyyy')} ({getFirstCicleDuration()} días).
                 </Alert>

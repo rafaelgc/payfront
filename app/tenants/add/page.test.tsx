@@ -1,11 +1,12 @@
 import '@testing-library/jest-dom'
-import { act, render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { act, render, screen, waitFor, fireEvent, within, findByTestId } from '@testing-library/react'
 import { Payments } from '@/app/payments/page'
 import axios from 'axios';
 import { Invoice, InvoicePaymentIntentStatus, InvoiceStatus } from '@/app/types/invoice';
 import { DateTime } from 'luxon';
 import { useRouter } from "next/navigation";
 import AddTenant from './page';
+import userEvent from '@testing-library/user-event';
 
 const routerPush = jest.fn();
 
@@ -20,7 +21,7 @@ jest.mock('next/navigation', () => {
 });
 
 describe('Add Tenant Page', () => {
-  it('unnamed test', async () => {
+  it('can be saved', async () => {
     jest.mock('axios');
     axios.post = jest.fn();
     axios.post.mockResolvedValue(() => {
@@ -32,12 +33,10 @@ describe('Add Tenant Page', () => {
     render(<AddTenant />);
 
     act(() => {
-      //screen.getByTestId('tenant-name').value = 'John Doe';
       fireEvent.change(screen.getByTestId('tenant-name').querySelector('input') as Element, {target: {value: 'John Doe'}});
       fireEvent.change(screen.getByTestId('tenant-email').querySelector('input') as Element, {target: {value: 'johndoe@habitacional.es'}});
       fireEvent.change(screen.getByTestId('rent').querySelector('input') as Element, {target: {value: '500'}});
-      fireEvent.change(screen.getByTestId('pay-day').querySelector('input') as Element, {target: {value: '1'}});
-      fireEvent.change(screen.getByTestId('entry-date').querySelector('input') as Element, {target: {value: '2023-01-01'}});
+      fireEvent.change(screen.getByTestId('entry-date').querySelector('input') as Element, {target: {value: '2024-11-15'}});
       fireEvent.click(screen.getByTestId('save-button'));
     });
 
@@ -47,7 +46,7 @@ describe('Add Tenant Page', () => {
         name: 'John Doe',
         rent: '500',
         anchorDate: 1,
-        entryDate: '2023-01-01',
+        entryDate: '2024-11-15',
       }, {
         headers: {
           'Authorization': `Bearer null`
@@ -55,5 +54,36 @@ describe('Add Tenant Page', () => {
       });
       expect(useRouter().push).toHaveBeenCalledWith('/?newTenant=true');
     });
+  });
+
+  it('displays partial rent alert', async () => {
+    render(<AddTenant />);
+
+    act(() => {
+      fireEvent.change(screen.getByTestId('tenant-name').querySelector('input') as Element, {target: {value: 'John Doe'}});
+      fireEvent.change(screen.getByTestId('tenant-email').querySelector('input') as Element, {target: {value: 'johndoe@habitacional.es'}});
+      fireEvent.change(screen.getByTestId('rent').querySelector('input') as Element, {target: {value: '500'}});
+      fireEvent.change(screen.getByTestId('entry-date').querySelector('input') as Element, {target: {value: '2024-11-15'}});
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId("partial-rent-alert")).toBeInTheDocument();
+    });
+  });
+
+  it('not displays partial rent alert', async () => {
+    render(<AddTenant defaultPayDay={15} />);
+
+    act(() => {
+      console.log(screen.getByTestId('pay-day').querySelector('input') as Element);
+      fireEvent.change(screen.getByTestId('tenant-name').querySelector('input') as Element, {target: {value: 'John Doe'}});
+      fireEvent.change(screen.getByTestId('tenant-email').querySelector('input') as Element, {target: {value: 'johndoe@habitacional.es'}});
+      fireEvent.change(screen.getByTestId('rent').querySelector('input') as Element, {target: {value: '500'}});
+      fireEvent.change(screen.getByTestId('entry-date').querySelector('input') as Element, {target: {value: '2024-11-15'}});
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByTestId("partial-rent-alert")).not.toBeInTheDocument();
+    }, { timeout: 3000 });
   });
 });
