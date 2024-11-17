@@ -4,8 +4,6 @@ import axios from 'axios';
 import { useRouter } from "next/navigation";
 import AddTenant from './page';
 
-const routerPush = jest.fn();
-
 jest.mock('next/navigation', () => {
   const useRouter = jest.fn().mockReturnValue({
     push: jest.fn()

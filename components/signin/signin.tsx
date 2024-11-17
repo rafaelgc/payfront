@@ -1,6 +1,6 @@
-import axios from "@/node_modules/axios/index";
+import axios from "axios";
 import { ACTIONS, StoreContext } from "@/store";
-import { Box, Button, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, TextField } from "@mui/material";
+import { Box, Button, TextField } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 
@@ -19,6 +19,7 @@ export function SignIn() {
           type="email"
           margin="normal"
           value={email}
+          data-testid="email"
           onChange={(e) => setEmail(e.target.value)}
       ></TextField>
       <TextField
@@ -27,6 +28,7 @@ export function SignIn() {
           margin="normal"
           type="password"
           value={password}
+          data-testid="password"
           onChange={(e) => setPassword(e.target.value)}
       ></TextField>
       <Box>
@@ -34,6 +36,7 @@ export function SignIn() {
             variant="contained"
             color="primary"
             sx={{ mt: 2 }}
+            data-testid="submit"
             disabled={processingRequest}
             onClick={async () => {
               try {
