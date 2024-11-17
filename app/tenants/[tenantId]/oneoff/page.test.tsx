@@ -1,9 +1,11 @@
 import '@testing-library/jest-dom'
-import { fireEvent, render, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, waitFor } from "@testing-library/react";
 import OneOffPayment from "./page";
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
 
 jest.mock('axios');
+
 jest.mock('next/navigation', () => {
   const useRouter = jest.fn().mockReturnValue({
     push: jest.fn()
@@ -86,6 +88,33 @@ describe('OneOff Page', () => {
     fireEvent.change(getByTestId('amount').querySelector('input') as Element, {target: {value: '0.2'}});
     await waitFor(() => {
       expect(getByTestId('save-button')).toBeDisabled();
+    });
+  });
+
+  it('save one off', async () => {
+    axios.get = jest.fn().mockResolvedValue({
+      data: tenantWithInvoiceSettings,
+    });
+
+    axios.post = jest.fn().mockResolvedValue({
+      status: 200,
+    });
+
+    const { getByTestId } = render(<OneOffPayment params={{ tenantId: 'cus_AKSM' }} />);
+
+    await waitFor(() => {
+      expect(getByTestId('save-button')).toBeInTheDocument();
+    });
+
+    act(() => {
+      fireEvent.change(getByTestId('amount').querySelector('input') as Element, {target: {value: '12'}});
+      fireEvent.change(getByTestId('description').querySelector('input') as Element, {target: {value: 'Bills'}});
+      fireEvent.click(getByTestId('save-button'));
+    });
+  
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalled();
+      expect(useRouter().push).toHaveBeenCalledWith('/payments?tenantId=cus_AKSM&invoiceCreated=true');
     });
   });
 });

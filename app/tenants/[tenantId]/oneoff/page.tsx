@@ -1,10 +1,8 @@
 "use client";
 import PageContent from "@/components/page-content";
 import PageHeader from "@/components/page-header";
-import { Alert, AlertTitle, Box, Button, Checkbox, Collapse, FormControl, FormControlLabel, FormHelperText, FormLabel, InputLabel, Link, MenuItem, Radio, RadioGroup, Select, TextField, Typography } from "@mui/material";
-import { headers } from "next/headers";
+import { Alert, Box, Button, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
-import { DateTime } from "luxon";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { getMinimumChargeAmount } from "@/invoice-utils";
@@ -61,7 +59,6 @@ export default function OneOffPayment({ params }: OneOffPaymentProps) {
                 }
             });
             const data = response.data;
-            console.log(data);
             router.push(`/payments?tenantId=${params.tenantId}&invoiceCreated=true`);
         }
         catch (e) {
