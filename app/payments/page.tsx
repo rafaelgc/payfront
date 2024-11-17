@@ -1,6 +1,6 @@
 "use client";
-import PageContent from "@/components/page-content";
-import PageHeader from "@/components/page-header";
+import PageContent from "@/app/components/page-content";
+import PageHeader from "@/app/components/page-header";
 import { Alert, Box, Button, IconButton, List, Skeleton, Table, TableBody, TableCell, TableHead, TableRow, useMediaQuery, useTheme } from "@mui/material";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";

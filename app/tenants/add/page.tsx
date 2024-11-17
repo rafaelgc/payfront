@@ -1,6 +1,6 @@
 "use client";
-import PageContent from "@/components/page-content";
-import PageHeader from "@/components/page-header";
+import PageContent from "@/app/components/page-content";
+import PageHeader from "@/app/components/page-header";
 import { Alert, AlertTitle, Box, Button, Checkbox, Collapse, FormControl, FormControlLabel, FormHelperText, FormLabel, InputLabel, Link, MenuItem, Radio, RadioGroup, Select, TextField, Typography } from "@mui/material";
 import { headers } from "next/headers";
 import { useState } from "react";

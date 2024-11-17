@@ -1,6 +1,6 @@
 "use client";
-import PageContent from "@/components/page-content";
-import PageHeader from "@/components/page-header";
+import PageContent from "@/app/components/page-content";
+import PageHeader from "@/app/components/page-header";
 import { Alert, Box, Button, TextField, Typography } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";

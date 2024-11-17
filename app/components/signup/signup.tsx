@@ -1,4 +1,4 @@
-import axios from "@/node_modules/axios/index";
+import axios from "axios";
 import { Box, Button, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, TextField } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -7,7 +7,7 @@ export function SignUp() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [companyType, setCompanyType] = useState("individual");
-  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(true);
   const [processingRequest, setProcessingRequest] = useState<boolean>(false);
   const router = useRouter();
 
@@ -20,6 +20,7 @@ export function SignUp() {
           margin="normal"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          data-testid="email"
       ></TextField>
       <TextField
           label="Contraseña"
@@ -28,6 +29,7 @@ export function SignUp() {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          data-testid="password"
       ></TextField>
       <FormControl fullWidth margin="normal">
         <InputLabel>Forma jurídica</InputLabel>
@@ -41,17 +43,20 @@ export function SignUp() {
           <MenuItem value={'company'}>Soy empresa</MenuItem>
         </Select>
       </FormControl>
+      {/*
       <FormControlLabel
           control={<Checkbox />}
           label="Acepto los términos y condiciones"
           checked={termsAccepted}
           onChange={(e) => setTermsAccepted((e.target as HTMLInputElement).checked)}
       />
+      */}
       <Box>
         <Button
             variant="contained"
             color="primary"
             sx={{ mt: 2 }}
+            data-testid="submit"
             disabled={processingRequest || !termsAccepted}
             onClick={async () => {
               try {

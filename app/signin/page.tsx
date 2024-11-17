@@ -1,6 +1,6 @@
 "use client";
-import PageContent from "@/components/page-content";
-import PageHeader from "@/components/page-header";
+import PageContent from "@/app/components/page-content";
+import PageHeader from "@/app/components/page-header";
 import { SignIn } from "@/app/components/signin/signin";
 
 export default function SignInPage() {

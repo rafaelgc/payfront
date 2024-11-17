@@ -1,5 +1,5 @@
-import PageContent from "@/components/page-content";
-import PageHeader from "@/components/page-header";
+import PageContent from "@/app/components/page-content";
+import PageHeader from "@/app/components/page-header";
 import { Typography } from "@mui/material";
 import styles from './page.module.css'
 
