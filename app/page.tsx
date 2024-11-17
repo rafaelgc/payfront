@@ -9,7 +9,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { Fragment, Suspense, useContext, useEffect, useState } from "react";
 import Link from "next/link";
 import { SignUp } from "@/components/signup";
-import { SignIn } from "@/components/signin/signin";
+import { SignIn } from "@/app/components/signin/signin";
 import { StoreContext } from "@/store";
 import { Welcome } from "@/components/welcome";
 import { useSearchParams } from "next/navigation";
